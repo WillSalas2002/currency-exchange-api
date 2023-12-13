@@ -4,6 +4,10 @@
   <groupId>currency_exchange_api</groupId>
   <artifactId>currency-exchange-api</artifactId>
   <packaging>war</packaging>
+  <properties>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
+  </properties>
   <version>1.0-SNAPSHOT</version>
   <name>currency-exchange-api Maven Webapp</name>
   <url>https://maven.apache.org</url>
