@@ -5,5 +5,7 @@ import currency_exchange_api.model.Currency;
 import java.util.List;
 
 public interface CurrencyDAO {
+
     List<Currency> getCurrencies();
+    Currency getCurrencyByCode(String code);
 }
