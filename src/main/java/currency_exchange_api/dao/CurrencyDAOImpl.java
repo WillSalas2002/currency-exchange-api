@@ -74,6 +74,38 @@ public class CurrencyDAOImpl implements CurrencyDAO {
         return exchangeRateList;
     }
 
+    @Override
+    public ExchangeRate getExchangeRate(String code1, String code2) {
+
+        Currency baseCurrency = getCurrencyByCode(code1);
+        Currency targetCurrency = getCurrencyByCode(code2);
+        int baseId = baseCurrency.getId();
+        int targetId = targetCurrency.getId();
+        String sql = "SELECT * FROM exchange_rates WHERE base_currency = " + baseId + " AND target_currency = " + targetId;
+        ExchangeRate exchangeRate = null;
+
+        try (Connection connection = DatabaseUtil.getConnection()) {
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(sql);
+
+            while (resultSet.next()) {
+
+                int id = resultSet.getInt("id");
+                int baseCurrencyId = resultSet.getInt("base_currency");
+                int targetCurrencyId = resultSet.getInt("target_currency");
+                double rate = resultSet.getDouble("rate");
+
+                Currency baseCurrency1 = getCurrencyById(baseCurrencyId);
+                Currency targetCurrency1 = getCurrencyById(targetCurrencyId);
+                exchangeRate = new ExchangeRate(id, baseCurrency1, targetCurrency1, rate);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return exchangeRate;
+    }
+
     private Currency getCurrencyById(int id) {
 
         String sql = "SELECT * FROM currencies WHERE id = " + id;
