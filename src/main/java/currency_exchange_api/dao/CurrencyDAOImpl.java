@@ -3,10 +3,8 @@ package currency_exchange_api.dao;
 import currency_exchange_api.model.Currency;
 import currency_exchange_api.model.ExchangeRate;
 import currency_exchange_api.util.DatabaseUtil;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -104,6 +102,25 @@ public class CurrencyDAOImpl implements CurrencyDAO {
         }
 
         return exchangeRate;
+    }
+
+    @Override
+    public void saveCurrency(String name, String code, String sign) {
+
+        String sql = "INSERT INTO currencies (code, full_name, sign) VALUES (?,?,?)";
+
+        try (Connection connection = DatabaseUtil.getConnection()) {
+
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, code);
+            preparedStatement.setString(2, name);
+            preparedStatement.setString(3, sign);
+
+            int i = preparedStatement.executeUpdate();
+            System.out.println("Data inserted successfully " + i);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private Currency getCurrencyById(int id) {
