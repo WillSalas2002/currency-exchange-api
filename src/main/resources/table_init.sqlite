@@ -1,0 +1,9 @@
+INSERT INTO currencies (code, full_name, sign)
+VALUES ('USD', 'United States Dollar', '$'),
+       ('AUD', 'Australian Dollar', 'A$'),
+       ('RUB', 'Russian Ruble', '₽');
+
+INSERT INTO exchange_rates (base_currency, target_currency, rate)
+VALUES (1, 2, 1.49),
+       (1, 3, 89.42),
+       (2, 3, 60.01);
