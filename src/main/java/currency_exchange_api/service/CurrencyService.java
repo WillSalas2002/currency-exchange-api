@@ -9,4 +9,6 @@ public interface CurrencyService {
     List<Currency> getCurrencies();
     Currency getCurrencyByCode(String code);
     List<ExchangeRate> getExchangeRates();
+
+    ExchangeRate getExchangeRate(String code1, String code2);
 }
