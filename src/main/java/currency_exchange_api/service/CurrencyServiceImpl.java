@@ -1,9 +1,7 @@
 package currency_exchange_api.service;
 
 import currency_exchange_api.dao.CurrencyDAO;
-import currency_exchange_api.dao.CurrencyDAOImpl;
 import currency_exchange_api.model.Currency;
-
 import java.util.List;
 
 public class CurrencyServiceImpl implements CurrencyService {
@@ -16,5 +14,9 @@ public class CurrencyServiceImpl implements CurrencyService {
     @Override
     public List<Currency> getCurrencies() {
         return currencyDAO.getCurrencies();
+    }
+    @Override
+    public Currency getCurrencyByCode(String code) {
+        return currencyDAO.getCurrencyByCode(code);
     }
 }
