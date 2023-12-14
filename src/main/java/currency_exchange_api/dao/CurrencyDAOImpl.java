@@ -123,6 +123,32 @@ public class CurrencyDAOImpl implements CurrencyDAO {
         }
     }
 
+    @Override
+    public void saveExchangeRate(String baseCurrencyCode, String targetCurrencyCode, double rate) {
+
+        Currency baseCurrency = getCurrencyByCode(baseCurrencyCode);
+        Currency targetCurrency = getCurrencyByCode(targetCurrencyCode);
+
+        int baseCurrencyId = baseCurrency.getId();
+        int targetCurrencyId = targetCurrency.getId();
+
+        String sql = "INSERT INTO exchange_rates (base_currency, target_currency, rate) VALUES (?, ?, ?)";
+
+        try (Connection connection = DatabaseUtil.getConnection()) {
+
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, baseCurrencyId);
+            preparedStatement.setInt(2, targetCurrencyId);
+            preparedStatement.setDouble(3, rate);
+
+            preparedStatement.executeUpdate();
+            System.out.println("Data inserted successfully!");
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+    }
+
     private Currency getCurrencyById(int id) {
 
         String sql = "SELECT * FROM currencies WHERE id = " + id;

@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.List;
 
 @WebServlet("/exchangeRates")
@@ -32,5 +33,15 @@ public class ExchangeRatesServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
+        String baseCurrencyCode = req.getParameter("baseCurrencyCode");
+        String targetCurrencyCode = req.getParameter("targetCurrencyCode");
+        String rateStr = req.getParameter("rate");
+
+        double rate = Double.parseDouble(rateStr);
+
+        currencyService.saveExchangeRate(baseCurrencyCode, targetCurrencyCode, rate);
+
+        PrintWriter pr = resp.getWriter();
+        pr.write("All good!");
     }
 }
