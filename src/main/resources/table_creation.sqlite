@@ -1,0 +1,15 @@
+CREATE TABLE IF NOT EXISTS currencies (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code VARCHAR(10) NOT NULL UNIQUE,
+    full_name VARCHAR(50) NOT NULL,
+    sign VARCHAR(10) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS exchange_rates (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    base_currency INTEGER,
+    target_currency INTEGER,
+    rate DECIMAL(10, 6),
+    FOREIGN KEY (base_currency) REFERENCES currencies (id),
+    FOREIGN KEY (target_currency) REFERENCES currencies (id)
+);
