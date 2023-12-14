@@ -11,4 +11,5 @@ public interface CurrencyDAO {
     Currency getCurrencyByCode(String code);
 
     List<ExchangeRate> getExchangeRates();
+    ExchangeRate getExchangeRate(String code1, String code2);
 }
