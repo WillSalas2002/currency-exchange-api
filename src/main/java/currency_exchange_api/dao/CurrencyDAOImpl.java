@@ -1,8 +1,8 @@
 package currency_exchange_api.dao;
 
 import currency_exchange_api.model.Currency;
+import currency_exchange_api.model.ExchangeRate;
 import currency_exchange_api.util.DatabaseUtil;
-
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -41,25 +41,67 @@ public class CurrencyDAOImpl implements CurrencyDAO {
     public Currency getCurrencyByCode(String code) {
 
         String sql = "SELECT * FROM currencies WHERE code = '" + code + "'";
-        Currency currencyResult = null;
+        return getCurrency(sql);
+    }
+
+    @Override
+    public List<ExchangeRate> getExchangeRates() {
+
+        String sql = "SELECT * FROM exchange_rates";
+        List<ExchangeRate> exchangeRateList = new ArrayList<>();
 
         try (Connection connection = DatabaseUtil.getConnection()) {
+
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery(sql);
 
             while (resultSet.next()) {
 
                 int id = resultSet.getInt("id");
-                String code1 = resultSet.getString("code");
-                String fullName = resultSet.getString("full_name");
-                String sign = resultSet.getString("sign");
+                int baseCurrencyId = resultSet.getInt("base_currency");
+                int targetCurrencyId = resultSet.getInt("target_currency");
+                double rate = resultSet.getDouble("rate");
 
-                currencyResult = new Currency(id, code1, fullName, sign);
+                Currency baseCurrency = getCurrencyById(baseCurrencyId);
+                Currency targetCurrency = getCurrencyById(targetCurrencyId);
+                exchangeRateList.add(new ExchangeRate(id, baseCurrency, targetCurrency, rate));
             }
+
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
 
-        return currencyResult;
+        return exchangeRateList;
+    }
+
+    private Currency getCurrencyById(int id) {
+
+        String sql = "SELECT * FROM currencies WHERE id = " + id;
+        return getCurrency(sql);
+    }
+
+    private Currency getCurrency(String sql) {
+        Currency currency = null;
+
+        try (Connection connection = DatabaseUtil.getConnection()) {
+
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(sql);
+
+            while (resultSet.next()) {
+
+                int id = resultSet.getInt("id");
+                String code = resultSet.getString("code");
+                String fullName = resultSet.getString("full_name");
+                String sign = resultSet.getString("sign");
+
+                currency = new Currency(id, code, fullName, sign);
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return currency;
     }
 }
