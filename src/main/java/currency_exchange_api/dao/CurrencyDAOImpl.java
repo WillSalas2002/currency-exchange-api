@@ -17,8 +17,7 @@ public class CurrencyDAOImpl implements CurrencyDAO {
         String sql = "SELECT * FROM currencies";
         List<Currency> currencyList = new ArrayList<>();
 
-        try (Connection connection = DatabaseUtil.getConnection();
-             ) {
+        try (Connection connection = DatabaseUtil.getConnection();) {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery(sql);
 
@@ -36,5 +35,31 @@ public class CurrencyDAOImpl implements CurrencyDAO {
             e.printStackTrace();
         }
         return currencyList;
+    }
+
+    @Override
+    public Currency getCurrencyByCode(String code) {
+
+        String sql = "SELECT * FROM currencies WHERE code = '" + code + "'";
+        Currency currencyResult = null;
+
+        try (Connection connection = DatabaseUtil.getConnection()) {
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(sql);
+
+            while (resultSet.next()) {
+
+                int id = resultSet.getInt("id");
+                String code1 = resultSet.getString("code");
+                String fullName = resultSet.getString("full_name");
+                String sign = resultSet.getString("sign");
+
+                currencyResult = new Currency(id, code1, fullName, sign);
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return currencyResult;
     }
 }
