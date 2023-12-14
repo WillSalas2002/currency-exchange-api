@@ -26,4 +26,9 @@ public class CurrencyServiceImpl implements CurrencyService {
     public List<ExchangeRate> getExchangeRates() {
         return currencyDAO.getExchangeRates();
     }
+
+    @Override
+    public ExchangeRate getExchangeRate(String code1, String code2) {
+        return currencyDAO.getExchangeRate(code1, code2);
+    }
 }
