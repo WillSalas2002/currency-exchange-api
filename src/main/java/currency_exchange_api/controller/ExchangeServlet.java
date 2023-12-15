@@ -4,9 +4,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import currency_exchange_api.dao.CurrencyDAO;
 import currency_exchange_api.dao.CurrencyDAOImpl;
+import currency_exchange_api.exception.InvalidParameterException;
+import currency_exchange_api.exception.MissingCurrencyException;
+import currency_exchange_api.exception.MissingCurrencyPairException;
+import currency_exchange_api.model.Currency;
 import currency_exchange_api.model.ExchangeRate;
 import currency_exchange_api.service.CurrencyService;
 import currency_exchange_api.service.CurrencyServiceImpl;
+import currency_exchange_api.util.Validation;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -14,6 +19,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
@@ -22,64 +29,81 @@ public class ExchangeServlet extends HttpServlet {
 
     private final CurrencyDAO currencyDAO = new CurrencyDAOImpl();
     private final CurrencyService currencyService = new CurrencyServiceImpl(currencyDAO);
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
 
-        Map<String, String[]> parameterMap = req.getParameterMap();
+        try {
 
-        Set<String> names = parameterMap.keySet();
-        String codeFrom = null;
-        String codeTo = null;
-        String amount = null;
+            String codeFrom = null;
+            String codeTo = null;
+            String amount = null;
 
-        for (String paramName : names) {
+            Map<String, String[]> parameterMap = req.getParameterMap();
+            Set<String> paramNames = parameterMap.keySet();
 
-            String[] values = parameterMap.get(paramName);
+            for (String paramName : paramNames) {
 
-            switch (paramName) {
-                case "from" -> codeFrom = values[0];
-                case "to" -> codeTo = values[0];
-                case "amount" -> amount = values[0];
+                String[] values = parameterMap.get(paramName);
+
+                switch (paramName) {
+                    case "from" -> codeFrom = values[0].toUpperCase();
+                    case "to" -> codeTo = values[0].toUpperCase();
+                    case "amount" -> amount = values[0];
+                }
             }
+
+            if (!(Validation.isCodeValid(codeTo) && Validation.isCodeValid(codeFrom))) {
+                throw new InvalidParameterException("");
+            }
+
+            double amountDouble = Double.parseDouble(amount);
+
+            ExchangeRate exchangeRate = getRealExchangeRate(codeFrom, codeTo);
+
+            double rate = exchangeRate.getRate();
+
+            double convertedAmount = rate * amountDouble;
+
+            res.setContentType("application/json");
+            ObjectNode objectNode = objectMapper.createObjectNode();
+
+            objectNode.set("baseCurrency", objectMapper.valueToTree(exchangeRate.getBaseCurrency()));
+            objectNode.set("targetCurrency", objectMapper.valueToTree(exchangeRate.getTargetCurrency()));
+            objectNode.set("rate", objectMapper.valueToTree(rate));
+            objectNode.set("amount", objectMapper.valueToTree(amountDouble));
+            objectNode.set("convertedAmount", objectMapper.valueToTree(convertedAmount));
+
+            objectMapper.writeValue(res.getOutputStream(), objectNode);
+
+        } catch (InvalidParameterException | NumberFormatException | NullPointerException error) {
+            res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", error.getMessage()));
+
+        } catch (MissingCurrencyException | MissingCurrencyPairException error) {
+            res.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", error.getMessage()));
+
+        } catch (SQLException e) {
+            res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "database is not available."));
         }
-
-        res.setContentType("application/json");
-
-        double amountDouble = Double.parseDouble(amount);
-        ExchangeRate exchangeRate = getRealExchangeRate(codeFrom, codeTo);
-        double rate = exchangeRate.getRate();
-
-        double convertedAmount = rate * amountDouble;
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        ObjectNode objectNode = objectMapper.createObjectNode();
-
-        objectNode.set("baseCurrency", objectMapper.valueToTree(exchangeRate.getBaseCurrency()));
-        objectNode.set("targetCurrency", objectMapper.valueToTree(exchangeRate.getTargetCurrency()));
-        objectNode.set("rate", objectMapper.valueToTree(rate));
-        objectNode.set("amount", objectMapper.valueToTree(amountDouble));
-        objectNode.set("convertedAmount", objectMapper.valueToTree(convertedAmount));
-
-        objectMapper.writeValue(res.getOutputStream(), objectNode);
-
     }
 
-    @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        doGet(req, res);
-    }
+    private ExchangeRate getRealExchangeRate(String codeFrom, String codeTo) throws SQLException, MissingCurrencyPairException, MissingCurrencyException {
 
-    private ExchangeRate getRealExchangeRate(String codeFrom, String codeTo) {
+        Currency baseCurrency = currencyService.getCurrencyByCode(codeFrom);
+        Currency targetCurrency = currencyService.getCurrencyByCode(codeTo);
 
-        ExchangeRate exchangeRate = currencyService.getExchangeRate(codeFrom, codeTo);
+        ExchangeRate exchangeRate;
+        try {
 
-        if (exchangeRate == null) {
+            exchangeRate = currencyService.getExchangeRate(baseCurrency, targetCurrency);
 
-            String temp = codeFrom;
-            codeFrom = codeTo;
-            codeTo = temp;
+        } catch (MissingCurrencyPairException e) {
 
-            exchangeRate = currencyService.getExchangeRate(codeFrom, codeTo);
+            exchangeRate = currencyService.getExchangeRate(targetCurrency, baseCurrency);
             double rate = 1 / exchangeRate.getRate();
             exchangeRate.setRate(rate);
         }
