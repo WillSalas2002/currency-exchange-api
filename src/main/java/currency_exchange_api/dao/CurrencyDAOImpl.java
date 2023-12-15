@@ -1,5 +1,6 @@
 package currency_exchange_api.dao;
 
+import currency_exchange_api.exception.MissingCurrencyException;
 import currency_exchange_api.model.Currency;
 import currency_exchange_api.model.ExchangeRate;
 import currency_exchange_api.util.DatabaseUtil;
@@ -17,10 +18,17 @@ public class CurrencyDAOImpl implements CurrencyDAO {
     }
 
     @Override
-    public Currency getCurrencyByCode(String code) throws SQLException {
+    public Currency getCurrencyByCode(String code) throws SQLException, MissingCurrencyException {
 
         String sql = "SELECT * FROM currencies WHERE code = '" + code + "'";
-        return getCurrency(sql).get(0);
+
+        List<Currency> currencyList = getCurrency(sql);
+
+        if (currencyList.isEmpty()) {
+            throw new MissingCurrencyException("Doesn't exist in the database.");
+        }
+
+        return currencyList.get(0);
     }
 
     @Override
