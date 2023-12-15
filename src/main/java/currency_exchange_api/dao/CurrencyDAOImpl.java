@@ -1,6 +1,7 @@
 package currency_exchange_api.dao;
 
 import currency_exchange_api.exception.MissingCurrencyException;
+import currency_exchange_api.exception.MissingCurrencyPairException;
 import currency_exchange_api.model.Currency;
 import currency_exchange_api.model.ExchangeRate;
 import currency_exchange_api.util.DatabaseUtil;
@@ -25,7 +26,7 @@ public class CurrencyDAOImpl implements CurrencyDAO {
         List<Currency> currencyList = getCurrency(sql);
 
         if (currencyList.isEmpty()) {
-            throw new MissingCurrencyException("Doesn't exist in the database.");
+            throw new MissingCurrencyException("Currency does not exist in the database.");
         }
 
         return currencyList.get(0);
@@ -39,15 +40,18 @@ public class CurrencyDAOImpl implements CurrencyDAO {
     }
 
     @Override
-    public ExchangeRate getExchangeRate(String code1, String code2) throws SQLException {
-
-        Currency baseCurrency = getCurrencyByCode(code1);
-        Currency targetCurrency = getCurrencyByCode(code2);
+    public ExchangeRate getExchangeRate(Currency baseCurrency, Currency targetCurrency) throws SQLException, MissingCurrencyPairException {
 
         int baseId = baseCurrency.getId();
         int targetId = targetCurrency.getId();
 
         String sql = "SELECT * FROM exchange_rates WHERE base_currency = " + baseId + " AND target_currency = " + targetId;
+
+        List<ExchangeRate> exchangeRateList = getExchangeRateList(sql);
+
+        if (exchangeRateList.isEmpty()) {
+            throw new MissingCurrencyPairException("Currency pair requested does not exist in the database.");
+        }
 
         return getExchangeRateList(sql).get(0);
     }
