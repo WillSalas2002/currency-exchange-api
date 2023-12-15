@@ -12,7 +12,9 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.PrintWriter;
 
 @WebServlet("/exchangeRate/*")
 public class ExchangeRateServlet extends HttpServlet {
@@ -35,6 +37,39 @@ public class ExchangeRateServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        doGet(req, resp);
+    }
 
+    @Override
+    protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+        if (req.getMethod().equalsIgnoreCase("PATCH")) {
+            doPatch(req, resp);
+        }
+    }
+
+    private void doPatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+
+        String pathInfo = req.getPathInfo();
+        String code1 = pathInfo.substring(pathInfo.length() - 6, pathInfo.length() - 3).toUpperCase();
+        String code2 = pathInfo.substring(pathInfo.length() - 3).toUpperCase();
+
+        BufferedReader sb = req.getReader();
+        String line = "";
+        StringBuilder result = new StringBuilder();
+        while ((line = sb.readLine()) != null) {
+            result.append(line);
+        }
+
+        String rate = result.toString().split("=")[1];
+        System.out.println(rate);
+
+        ExchangeRate exchangeRate = currencyService.getExchangeRate(code1, code2);
+
+        int id = exchangeRate.getId();
+
+        currencyService.updateExchangeRate(id, rate);
+        PrintWriter pr = resp.getWriter();
+        pr.write("All good!");
     }
 }

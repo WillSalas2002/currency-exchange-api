@@ -41,4 +41,9 @@ public class CurrencyServiceImpl implements CurrencyService {
     public void saveExchangeRate(String baseCurrencyCode, String targetCurrencyCode, double rate) {
         currencyDAO.saveExchangeRate(baseCurrencyCode, targetCurrencyCode, rate);
     }
+
+    @Override
+    public void updateExchangeRate(int id, String rate) {
+        currencyDAO.updateExchangeRate(id, rate);
+    }
 }
