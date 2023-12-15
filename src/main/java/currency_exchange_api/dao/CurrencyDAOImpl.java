@@ -15,9 +15,9 @@ public class CurrencyDAOImpl implements CurrencyDAO {
         String sql = "SELECT * FROM currencies";
         List<Currency> currencyList = new ArrayList<>();
 
-        try (Connection connection = DatabaseUtil.getConnection();) {
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(sql);
+        try (Connection connection = DatabaseUtil.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
 
             while (resultSet.next()) {
 
@@ -48,10 +48,9 @@ public class CurrencyDAOImpl implements CurrencyDAO {
         String sql = "SELECT * FROM exchange_rates";
         List<ExchangeRate> exchangeRateList = new ArrayList<>();
 
-        try (Connection connection = DatabaseUtil.getConnection()) {
-
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(sql);
+        try (Connection connection = DatabaseUtil.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
 
             while (resultSet.next()) {
 
@@ -82,9 +81,9 @@ public class CurrencyDAOImpl implements CurrencyDAO {
         String sql = "SELECT * FROM exchange_rates WHERE base_currency = " + baseId + " AND target_currency = " + targetId;
         ExchangeRate exchangeRate = null;
 
-        try (Connection connection = DatabaseUtil.getConnection()) {
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(sql);
+        try (Connection connection = DatabaseUtil.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql);) {
 
             while (resultSet.next()) {
 
@@ -109,9 +108,9 @@ public class CurrencyDAOImpl implements CurrencyDAO {
 
         String sql = "INSERT INTO currencies (code, full_name, sign) VALUES (?,?,?)";
 
-        try (Connection connection = DatabaseUtil.getConnection()) {
+        try (Connection connection = DatabaseUtil.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, code);
             preparedStatement.setString(2, name);
             preparedStatement.setString(3, sign);
@@ -134,9 +133,9 @@ public class CurrencyDAOImpl implements CurrencyDAO {
 
         String sql = "INSERT INTO exchange_rates (base_currency, target_currency, rate) VALUES (?, ?, ?)";
 
-        try (Connection connection = DatabaseUtil.getConnection()) {
+        try (Connection connection = DatabaseUtil.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setInt(1, baseCurrencyId);
             preparedStatement.setInt(2, targetCurrencyId);
             preparedStatement.setDouble(3, rate);
@@ -156,9 +155,9 @@ public class CurrencyDAOImpl implements CurrencyDAO {
 
         String sql = "UPDATE exchange_rates SET rate = ? WHERE id = ?";
 
-        try (Connection connection = DatabaseUtil.getConnection()) {
+        try (Connection connection = DatabaseUtil.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql);) {
 
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setDouble(1, ratedb);
             preparedStatement.setInt(2, id);
             preparedStatement.executeUpdate();
@@ -178,10 +177,9 @@ public class CurrencyDAOImpl implements CurrencyDAO {
     private Currency getCurrency(String sql) {
         Currency currency = null;
 
-        try (Connection connection = DatabaseUtil.getConnection()) {
-
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery(sql);
+        try (Connection connection = DatabaseUtil.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql);) {
 
             while (resultSet.next()) {
 
