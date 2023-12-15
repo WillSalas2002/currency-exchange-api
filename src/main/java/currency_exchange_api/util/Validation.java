@@ -14,7 +14,7 @@ public class Validation {
 
         for (int i = 0; i < code.length(); i++) {
 
-            if (code.charAt(i) < 'A' && code.charAt(i) > 'z') {
+            if (code.charAt(i) < 'A' || code.charAt(i) > 'z') {
                 return false;
             }
         }
