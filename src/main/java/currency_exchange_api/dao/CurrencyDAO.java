@@ -13,5 +13,5 @@ public interface CurrencyDAO {
     ExchangeRate getExchangeRate(String code1, String code2);
     void saveCurrency(String name, String code, String sign);
     void saveExchangeRate(String baseCurrencyCode, String targetCurrencyCode, double rate);
-    void updateExchangeRate(int id, String rate);
+    void updateExchangeRate(int id, double rate);
 }

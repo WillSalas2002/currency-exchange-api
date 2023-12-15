@@ -90,16 +90,14 @@ public class CurrencyDAOImpl implements CurrencyDAO {
     }
 
     @Override
-    public void updateExchangeRate(int id, String rate) {
-
-        double ratedb = Double.parseDouble(rate);
+    public void updateExchangeRate(int id, double rate) {
 
         String sql = "UPDATE exchange_rates SET rate = ? WHERE id = ?";
 
         try (Connection connection = DatabaseUtil.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql);) {
 
-            preparedStatement.setDouble(1, ratedb);
+            preparedStatement.setDouble(1, rate);
             preparedStatement.setInt(2, id);
             preparedStatement.executeUpdate();
             System.out.println("Source updated successfully!");
@@ -122,7 +120,7 @@ public class CurrencyDAOImpl implements CurrencyDAO {
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(sql);) {
 
-            if (resultSet.next()) {
+            if (resultSet.isBeforeFirst()) {
 
                 while (resultSet.next()) {
 
@@ -153,7 +151,7 @@ public class CurrencyDAOImpl implements CurrencyDAO {
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(sql)) {
 
-            if (resultSet.next()) {
+            if (resultSet.isBeforeFirst()) {
 
                 while (resultSet.next()) {
 

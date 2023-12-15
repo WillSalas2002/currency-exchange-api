@@ -43,7 +43,7 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
-    public void updateExchangeRate(int id, String rate) {
+    public void updateExchangeRate(int id, double rate) {
         currencyDAO.updateExchangeRate(id, rate);
     }
 }

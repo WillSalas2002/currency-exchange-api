@@ -15,6 +15,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Map;
+import java.util.Set;
 
 @WebServlet("/exchangeRate/*")
 public class ExchangeRateServlet extends HttpServlet {
@@ -54,19 +56,21 @@ public class ExchangeRateServlet extends HttpServlet {
         String code1 = pathInfo.substring(pathInfo.length() - 6, pathInfo.length() - 3).toUpperCase();
         String code2 = pathInfo.substring(pathInfo.length() - 3).toUpperCase();
 
-        BufferedReader sb = req.getReader();
-        String line = "";
-        StringBuilder result = new StringBuilder();
-        while ((line = sb.readLine()) != null) {
-            result.append(line);
-        }
+        Map<String, String[]> parameterMap = req.getParameterMap();
+        Set<String> paramNames = parameterMap.keySet();
 
-        String rate = result.toString().split("=")[1];
-        System.out.println(rate);
+        String rateStr = null;
+        for (String paramName : paramNames) {
+
+            if (paramName.equals("rate")) {
+                rateStr = parameterMap.get(paramName)[0];
+            }
+        }
 
         ExchangeRate exchangeRate = currencyService.getExchangeRate(code1, code2);
 
         int id = exchangeRate.getId();
+        double rate = Double.parseDouble(rateStr);
 
         currencyService.updateExchangeRate(id, rate);
         PrintWriter pr = resp.getWriter();
