@@ -29,8 +29,8 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
-    public ExchangeRate getExchangeRate(String code1, String code2) throws SQLException {
-        return currencyDAO.getExchangeRate(code1, code2);
+    public ExchangeRate getExchangeRate(Currency baseCurrency, Currency targetCurrency) throws SQLException {
+        return currencyDAO.getExchangeRate(baseCurrency, targetCurrency);
     }
 
     @Override

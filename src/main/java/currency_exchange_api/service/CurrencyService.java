@@ -11,7 +11,7 @@ public interface CurrencyService {
     List<Currency> getCurrencies() throws SQLException;
     Currency getCurrencyByCode(String code) throws SQLException;
     List<ExchangeRate> getExchangeRates() throws SQLException;
-    ExchangeRate getExchangeRate(String code1, String code2) throws SQLException;
+    ExchangeRate getExchangeRate(Currency baseCurrency, Currency targetCurrency) throws SQLException;
     void saveCurrency(String name, String code, String sign) throws SQLException;
     void saveExchangeRate(String baseCurrencyCode, String targetCurrencyCode, double rate) throws SQLException;
     void updateExchangeRate(int id, double rate) throws SQLException;
