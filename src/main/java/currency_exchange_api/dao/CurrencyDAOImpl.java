@@ -27,29 +27,7 @@ public class CurrencyDAOImpl implements CurrencyDAO {
     public List<ExchangeRate> getExchangeRates() {
 
         String sql = "SELECT * FROM exchange_rates";
-        List<ExchangeRate> exchangeRateList = new ArrayList<>();
-
-        try (Connection connection = DatabaseUtil.getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(sql)) {
-
-            while (resultSet.next()) {
-
-                int id = resultSet.getInt("id");
-                int baseCurrencyId = resultSet.getInt("base_currency");
-                int targetCurrencyId = resultSet.getInt("target_currency");
-                double rate = resultSet.getDouble("rate");
-
-                Currency baseCurrency = getCurrencyById(baseCurrencyId).get(0);
-                Currency targetCurrency = getCurrencyById(targetCurrencyId).get(0);
-                exchangeRateList.add(new ExchangeRate(id, baseCurrency, targetCurrency, rate));
-            }
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-        return exchangeRateList;
+        return getExchangeRateList(sql);
     }
 
     @Override
@@ -57,31 +35,13 @@ public class CurrencyDAOImpl implements CurrencyDAO {
 
         Currency baseCurrency = getCurrencyByCode(code1);
         Currency targetCurrency = getCurrencyByCode(code2);
+
         int baseId = baseCurrency.getId();
         int targetId = targetCurrency.getId();
+
         String sql = "SELECT * FROM exchange_rates WHERE base_currency = " + baseId + " AND target_currency = " + targetId;
-        ExchangeRate exchangeRate = null;
 
-        try (Connection connection = DatabaseUtil.getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(sql);) {
-
-            while (resultSet.next()) {
-
-                int id = resultSet.getInt("id");
-                int baseCurrencyId = resultSet.getInt("base_currency");
-                int targetCurrencyId = resultSet.getInt("target_currency");
-                double rate = resultSet.getDouble("rate");
-
-                Currency baseCurrency1 = getCurrencyById(baseCurrencyId).get(0);
-                Currency targetCurrency1 = getCurrencyById(targetCurrencyId).get(0);
-                exchangeRate = new ExchangeRate(id, baseCurrency1, targetCurrency1, rate);
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-
-        return exchangeRate;
+        return getExchangeRateList(sql).get(0);
     }
 
     @Override
@@ -177,5 +137,32 @@ public class CurrencyDAOImpl implements CurrencyDAO {
         }
 
         return currencyList;
+    }
+
+    private List<ExchangeRate> getExchangeRateList(String sql) {
+
+        List<ExchangeRate> exchangeRateList = new ArrayList<>();
+
+        try (Connection connection = DatabaseUtil.getConnection();
+             Statement statement = connection.createStatement();
+             ResultSet resultSet = statement.executeQuery(sql)) {
+
+            while (resultSet.next()) {
+
+                int id = resultSet.getInt("id");
+                int baseCurrencyId = resultSet.getInt("base_currency");
+                int targetCurrencyId = resultSet.getInt("target_currency");
+                double rate = resultSet.getDouble("rate");
+
+                Currency baseCurrency = getCurrencyById(baseCurrencyId).get(0);
+                Currency targetCurrency = getCurrencyById(targetCurrencyId).get(0);
+                exchangeRateList.add(new ExchangeRate(id, baseCurrency, targetCurrency, rate));
+            }
+
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+
+        return exchangeRateList;
     }
 }
