@@ -122,14 +122,20 @@ public class CurrencyDAOImpl implements CurrencyDAO {
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(sql);) {
 
-            while (resultSet.next()) {
+            if (resultSet.next()) {
 
-                int id = resultSet.getInt("id");
-                String code = resultSet.getString("code");
-                String fullName = resultSet.getString("full_name");
-                String sign = resultSet.getString("sign");
+                while (resultSet.next()) {
 
-                currencyList.add(new Currency(id, code, fullName, sign));
+                    int id = resultSet.getInt("id");
+                    String code = resultSet.getString("code");
+                    String fullName = resultSet.getString("full_name");
+                    String sign = resultSet.getString("sign");
+
+                    currencyList.add(new Currency(id, code, fullName, sign));
+                }
+
+            } else {
+                System.out.println("The resultSet is empty.");
             }
 
         } catch (SQLException e) {
@@ -147,16 +153,22 @@ public class CurrencyDAOImpl implements CurrencyDAO {
              Statement statement = connection.createStatement();
              ResultSet resultSet = statement.executeQuery(sql)) {
 
-            while (resultSet.next()) {
+            if (resultSet.next()) {
 
-                int id = resultSet.getInt("id");
-                int baseCurrencyId = resultSet.getInt("base_currency");
-                int targetCurrencyId = resultSet.getInt("target_currency");
-                double rate = resultSet.getDouble("rate");
+                while (resultSet.next()) {
 
-                Currency baseCurrency = getCurrencyById(baseCurrencyId).get(0);
-                Currency targetCurrency = getCurrencyById(targetCurrencyId).get(0);
-                exchangeRateList.add(new ExchangeRate(id, baseCurrency, targetCurrency, rate));
+                    int id = resultSet.getInt("id");
+                    int baseCurrencyId = resultSet.getInt("base_currency");
+                    int targetCurrencyId = resultSet.getInt("target_currency");
+                    double rate = resultSet.getDouble("rate");
+
+                    Currency baseCurrency = getCurrencyById(baseCurrencyId).get(0);
+                    Currency targetCurrency = getCurrencyById(targetCurrencyId).get(0);
+                    exchangeRateList.add(new ExchangeRate(id, baseCurrency, targetCurrency, rate));
+                }
+
+            } else {
+                System.out.println("The resultSet is Empty.");
             }
 
         } catch (SQLException e) {
