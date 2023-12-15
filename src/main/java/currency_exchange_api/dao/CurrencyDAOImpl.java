@@ -10,28 +10,28 @@ import java.util.List;
 
 public class CurrencyDAOImpl implements CurrencyDAO {
     @Override
-    public List<Currency> getCurrencies() {
+    public List<Currency> getCurrencies() throws SQLException {
 
         String sql = "SELECT * FROM currencies";
         return getCurrency(sql);
     }
 
     @Override
-    public Currency getCurrencyByCode(String code) {
+    public Currency getCurrencyByCode(String code) throws SQLException {
 
         String sql = "SELECT * FROM currencies WHERE code = '" + code + "'";
         return getCurrency(sql).get(0);
     }
 
     @Override
-    public List<ExchangeRate> getExchangeRates() {
+    public List<ExchangeRate> getExchangeRates() throws SQLException {
 
         String sql = "SELECT * FROM exchange_rates";
         return getExchangeRateList(sql);
     }
 
     @Override
-    public ExchangeRate getExchangeRate(String code1, String code2) {
+    public ExchangeRate getExchangeRate(String code1, String code2) throws SQLException {
 
         Currency baseCurrency = getCurrencyByCode(code1);
         Currency targetCurrency = getCurrencyByCode(code2);
@@ -45,7 +45,7 @@ public class CurrencyDAOImpl implements CurrencyDAO {
     }
 
     @Override
-    public void saveCurrency(String name, String code, String sign) {
+    public void saveCurrency(String name, String code, String sign) throws SQLException {
 
         String sql = "INSERT INTO currencies (code, full_name, sign) VALUES (?,?,?)";
 
@@ -58,13 +58,11 @@ public class CurrencyDAOImpl implements CurrencyDAO {
 
             int i = preparedStatement.executeUpdate();
             System.out.println("Data inserted successfully " + i);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 
     @Override
-    public void saveExchangeRate(String baseCurrencyCode, String targetCurrencyCode, double rate) {
+    public void saveExchangeRate(String baseCurrencyCode, String targetCurrencyCode, double rate) throws SQLException {
 
         Currency baseCurrency = getCurrencyByCode(baseCurrencyCode);
         Currency targetCurrency = getCurrencyByCode(targetCurrencyCode);
@@ -90,7 +88,7 @@ public class CurrencyDAOImpl implements CurrencyDAO {
     }
 
     @Override
-    public void updateExchangeRate(int id, double rate) {
+    public void updateExchangeRate(int id, double rate) throws SQLException {
 
         String sql = "UPDATE exchange_rates SET rate = ? WHERE id = ?";
 
@@ -102,18 +100,16 @@ public class CurrencyDAOImpl implements CurrencyDAO {
             preparedStatement.executeUpdate();
             System.out.println("Source updated successfully!");
 
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 
-    private List<Currency> getCurrencyById(int id) {
+    private List<Currency> getCurrencyById(int id) throws SQLException {
 
         String sql = "SELECT * FROM currencies WHERE id = " + id;
         return getCurrency(sql);
     }
 
-    private List<Currency> getCurrency(String sql) {
+    private List<Currency> getCurrency(String sql) throws SQLException {
         List<Currency> currencyList = new ArrayList<>();
 
         try (Connection connection = DatabaseUtil.getConnection();
@@ -135,15 +131,11 @@ public class CurrencyDAOImpl implements CurrencyDAO {
             } else {
                 System.out.println("The resultSet is empty.");
             }
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
-
         return currencyList;
     }
 
-    private List<ExchangeRate> getExchangeRateList(String sql) {
+    private List<ExchangeRate> getExchangeRateList(String sql) throws SQLException {
 
         List<ExchangeRate> exchangeRateList = new ArrayList<>();
 
@@ -168,9 +160,6 @@ public class CurrencyDAOImpl implements CurrencyDAO {
             } else {
                 System.out.println("The resultSet is Empty.");
             }
-
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
 
         return exchangeRateList;
