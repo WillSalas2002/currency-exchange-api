@@ -45,46 +45,33 @@ public class CurrenciesServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws IOException {
 
-        String name = null;
-        String code = null;
-        String sign = null;
-
         try {
 
-            code = req.getParameter("code");
-            name = req.getParameter("name");
-            sign = req.getParameter("sign");
+            String code = req.getParameter("code");
+            String name = req.getParameter("name");
+            String sign = req.getParameter("sign");
 
             if (!Validation.isCodeValid(code) || name.length() < 5 || sign.length() == 0) {
                 throw new InvalidParameterException("Invalid parameter");
             }
 
-            currencyService.getCurrencyByCode(code);
+            currencyService.saveCurrency(name, code, sign);
 
-            res.setStatus(HttpServletResponse.SC_CONFLICT);
-            objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "Currency with this code already exists."));
-
-        } catch (MissingCurrencyException error) {
-
-            try {
-
-                currencyService.saveCurrency(name, code, sign);
-
-                res.setStatus(HttpServletResponse.SC_OK);
-                objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "Currency saved successfully."));
-
-            } catch (SQLException e) {
-                res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "Failed to save currency due to a database error."));
-            }
+            res.setStatus(HttpServletResponse.SC_OK);
+            objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "Currency saved successfully."));
 
         } catch (InvalidParameterException error) {
             res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", error.getMessage()));
 
         } catch (SQLException e) {
-            res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "Database is not available."));
+            if (e.getErrorCode() == 19) {
+                res.setStatus(HttpServletResponse.SC_CONFLICT);
+                objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "currency with this code already exists."));
+            } else {
+                res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "Failed to save currency due to a database error."));
+            }
         }
     }
 }
