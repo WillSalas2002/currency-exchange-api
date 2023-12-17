@@ -1,19 +1,28 @@
 package currency_exchange_api.util;
 
+import java.io.File;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DatabaseUtil {
-    private static final String JDBC_URL = "jdbc:sqlite:C:\\Program Files\\JetBrains\\java-projects\\pet-projects\\currency-exchange-api\\src\\main\\resources\\database.sqlite";
     public static Connection getConnection() {
 
         Connection connection = null;
         try {
+
+            URL jdbcUrl = DatabaseUtil.class.getClassLoader().getResource("database.sqlite");
             Class.forName("org.sqlite.JDBC");
-            connection = DriverManager.getConnection(JDBC_URL);
+            String path = new File(jdbcUrl.toURI()).getAbsolutePath();
+            connection = DriverManager.getConnection("jdbc:sqlite:" + path);
+
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
+
+        } catch (URISyntaxException e) {
+            e.getMessage();
         }
 
         return connection;
