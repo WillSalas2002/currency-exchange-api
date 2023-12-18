@@ -112,7 +112,7 @@ public class CurrencyDAOImpl implements CurrencyDAO {
 
         try (Connection connection = DatabaseUtil.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql);
-             ResultSet resultSet = preparedStatement.executeQuery(sql)) {
+             ResultSet resultSet = preparedStatement.executeQuery()) {
 
             if (resultSet.isBeforeFirst()) {
 
@@ -139,7 +139,7 @@ public class CurrencyDAOImpl implements CurrencyDAO {
 
         try (Connection connection = DatabaseUtil.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql);
-             ResultSet resultSet = preparedStatement.executeQuery(sql)) {
+             ResultSet resultSet = preparedStatement.executeQuery()) {
 
             if (resultSet.isBeforeFirst()) {
 

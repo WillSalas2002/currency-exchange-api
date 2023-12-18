@@ -65,8 +65,13 @@ public class ExchangeRatesServlet extends HttpServlet {
             objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", error.getMessage()));
 
         } catch (SQLException e) {
-            res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "Database is not available."));
+            if (e.getErrorCode() == 19) {
+                res.setStatus(HttpServletResponse.SC_CONFLICT);
+                objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "exchange rate with this currency pairs already exists."));
+            } else {
+                res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "Failed to save currency due to a database error."));
+            }
         }
 
     }
