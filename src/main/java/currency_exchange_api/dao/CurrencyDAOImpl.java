@@ -111,8 +111,8 @@ public class CurrencyDAOImpl implements CurrencyDAO {
         List<Currency> currencyList = new ArrayList<>();
 
         try (Connection connection = DatabaseUtil.getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql);
+             ResultSet resultSet = preparedStatement.executeQuery(sql)) {
 
             if (resultSet.isBeforeFirst()) {
 
@@ -138,8 +138,8 @@ public class CurrencyDAOImpl implements CurrencyDAO {
         List<ExchangeRate> exchangeRateList = new ArrayList<>();
 
         try (Connection connection = DatabaseUtil.getConnection();
-             Statement statement = connection.createStatement();
-             ResultSet resultSet = statement.executeQuery(sql)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql);
+             ResultSet resultSet = preparedStatement.executeQuery(sql)) {
 
             if (resultSet.isBeforeFirst()) {
 
