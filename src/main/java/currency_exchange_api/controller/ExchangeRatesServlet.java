@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.List;
@@ -30,7 +31,8 @@ public class ExchangeRatesServlet extends HttpServlet {
 
             List<ExchangeRate> exchangeRatesList = currencyService.getExchangeRates();
             res.setContentType("application/json");
-            objectMapper.writeValue(res.getOutputStream(), exchangeRatesList);
+            res.setStatus(HttpServletResponse.SC_OK);
+            objectMapper.writeValue(res.getWriter(), exchangeRatesList);
 
         } catch (SQLException e) {
             res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -45,11 +47,11 @@ public class ExchangeRatesServlet extends HttpServlet {
 
         try {
 
-            String baseCurrencyCode = req.getParameter("baseCurrencyCode");
-            String targetCurrencyCode = req.getParameter("targetCurrencyCode");
-            String rateStr = req.getParameter("rate");
+            String baseCurrencyCode = req.getParameter("baseCurrencyCode").toUpperCase();
+            String targetCurrencyCode = req.getParameter("targetCurrencyCode").toUpperCase();
+            String rateStr = req.getParameter("rate").replace(",", ".");
 
-            double rate = Double.parseDouble(rateStr);
+            BigDecimal rate = new BigDecimal(rateStr);
 
             currencyService.saveExchangeRate(baseCurrencyCode, targetCurrencyCode, rate);
 

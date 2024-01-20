@@ -17,11 +17,12 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.Collections;
-import java.util.Map;
-import java.util.Set;
 
 @WebServlet("/exchangeRate/*")
 public class ExchangeRateServlet extends HttpServlet {
@@ -57,7 +58,9 @@ public class ExchangeRateServlet extends HttpServlet {
             Currency targetCurrency = currencyService.getCurrencyByCode(codeTarget);
 
             ExchangeRate exchangeRate = currencyService.getExchangeRate(baseCurrency, targetCurrency);
-            objectMapper.writeValue(res.getOutputStream(), exchangeRate);
+            res.setContentType("application/json");
+            res.setStatus(HttpServletResponse.SC_OK);
+            objectMapper.writeValue(res.getWriter(), exchangeRate);
 
         } catch (InvalidParameterException error) {
             res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -86,15 +89,14 @@ public class ExchangeRateServlet extends HttpServlet {
                 throw new InvalidParameterException("specified currency codes are not valid");
             }
 
-            Map<String, String[]> parameterMap = req.getParameterMap();
-            Set<String> paramNames = parameterMap.keySet();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(req.getInputStream()));
 
+            String line;
             String rateStr = null;
-            for (String paramName : paramNames) {
 
-                if (paramName.equals("rate")) {
-                    rateStr = parameterMap.get(paramName)[0];
-                }
+            while ((line = reader.readLine()) != null) {
+                String[] split = line.split("=");
+                rateStr = split[1];
             }
 
             Currency baseCurrency = currencyService.getCurrencyByCode(codeBase);
@@ -103,7 +105,7 @@ public class ExchangeRateServlet extends HttpServlet {
             ExchangeRate exchangeRate = currencyService.getExchangeRate(baseCurrency, targetCurrency);
 
             int id = exchangeRate.getId();
-            double rate = Double.parseDouble(rateStr);
+            BigDecimal rate = new BigDecimal(rateStr);
 
             currencyService.updateExchangeRate(id, rate);
 

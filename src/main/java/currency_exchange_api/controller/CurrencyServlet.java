@@ -29,7 +29,7 @@ public class CurrencyServlet extends HttpServlet {
 
         try {
 
-            String code = req.getPathInfo().replace("/", "");
+            String code = req.getPathInfo().replace("/", "").toUpperCase();
 
             if (!Validation.isCodeValid(code)) {
                 throw new InvalidParameterException("specified currency code is not valid or it is absent.");
@@ -37,7 +37,8 @@ public class CurrencyServlet extends HttpServlet {
 
             Currency currency = currencyService.getCurrencyByCode(code);
             res.setContentType("application/json");
-            objectMapper.writeValue(res.getOutputStream(), currency);
+            res.setStatus(HttpServletResponse.SC_OK);
+            objectMapper.writeValue(res.getWriter(), currency);
 
         } catch (InvalidParameterException error) {
             res.setStatus(HttpServletResponse.SC_BAD_REQUEST);

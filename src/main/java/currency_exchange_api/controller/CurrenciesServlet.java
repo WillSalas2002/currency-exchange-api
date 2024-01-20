@@ -33,7 +33,8 @@ public class CurrenciesServlet extends HttpServlet {
 
             List<Currency> currencyList = currencyService.getCurrencies();
             res.setContentType("application/json");
-            objectMapper.writeValue(res.getOutputStream(), currencyList);
+            res.setStatus(HttpServletResponse.SC_OK);
+            objectMapper.writeValue(res.getWriter(), currencyList);
 
         } catch (SQLException e) {
             res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
@@ -47,11 +48,12 @@ public class CurrenciesServlet extends HttpServlet {
 
         try {
 
-            String code = req.getParameter("code");
+            String code = req.getParameter("code").toUpperCase();
             String name = req.getParameter("name");
             String sign = req.getParameter("sign");
 
-            if (!Validation.isCodeValid(code) || name.length() < 5 || sign.length() == 0) {
+            if (!Validation.isCodeValid(code) || name.length() < 2 || sign.length() == 0) {
+                System.out.println(name + " " + code + " " + sign);
                 throw new InvalidParameterException("Invalid parameter");
             }
 
