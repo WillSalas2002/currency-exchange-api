@@ -1,9 +1,9 @@
 package currency_exchange_api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import currency_exchange_api.dao.CurrencyDAO;
 import currency_exchange_api.dao.CurrencyDAOImpl;
+import currency_exchange_api.dto.ExchangeResponseDTO;
 import currency_exchange_api.exception.InvalidParameterException;
 import currency_exchange_api.exception.MissingCurrencyException;
 import currency_exchange_api.exception.MissingCurrencyPairException;
@@ -12,13 +12,14 @@ import currency_exchange_api.model.ExchangeRate;
 import currency_exchange_api.service.CurrencyService;
 import currency_exchange_api.service.CurrencyServiceImpl;
 import currency_exchange_api.util.Validation;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Map;
@@ -55,27 +56,23 @@ public class ExchangeServlet extends HttpServlet {
             }
 
             if (!(Validation.isCodeValid(codeTo) && Validation.isCodeValid(codeFrom))) {
-                throw new InvalidParameterException("");
+                throw new InvalidParameterException("specified currency code is not valid or it is absent.");
             }
 
-            double amountDouble = Double.parseDouble(amount);
+            BigDecimal amountDouble = BigDecimal.valueOf(Double.parseDouble(amount));
 
             ExchangeRate exchangeRate = getRealExchangeRate(codeFrom, codeTo);
 
-            double rate = exchangeRate.getRate();
+            BigDecimal rate = exchangeRate.getRate();
 
-            double convertedAmount = rate * amountDouble;
+            BigDecimal convertedAmount = rate.multiply(amountDouble);
+            convertedAmount = convertedAmount.setScale(6, RoundingMode.HALF_EVEN);
 
             res.setContentType("application/json");
-            ObjectNode objectNode = objectMapper.createObjectNode();
+            ExchangeResponseDTO exchangeResponseDTO = new ExchangeResponseDTO(exchangeRate, amountDouble, convertedAmount);
 
-            objectNode.set("baseCurrency", objectMapper.valueToTree(exchangeRate.getBaseCurrency()));
-            objectNode.set("targetCurrency", objectMapper.valueToTree(exchangeRate.getTargetCurrency()));
-            objectNode.set("rate", objectMapper.valueToTree(rate));
-            objectNode.set("amount", objectMapper.valueToTree(amountDouble));
-            objectNode.set("convertedAmount", objectMapper.valueToTree(convertedAmount));
-
-            objectMapper.writeValue(res.getOutputStream(), objectNode);
+            res.setStatus(HttpServletResponse.SC_OK);
+            objectMapper.writeValue(res.getWriter(), exchangeResponseDTO);
 
         } catch (InvalidParameterException | NumberFormatException | NullPointerException error) {
             res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -104,7 +101,7 @@ public class ExchangeServlet extends HttpServlet {
         } catch (MissingCurrencyPairException e) {
 
             exchangeRate = currencyService.getExchangeRate(targetCurrency, baseCurrency);
-            double rate = 1 / exchangeRate.getRate();
+            BigDecimal rate = BigDecimal.ONE.divide(exchangeRate.getRate(), 6, RoundingMode.HALF_EVEN);
             exchangeRate.setRate(rate);
         }
 
