@@ -1,11 +1,11 @@
 package currency_exchange_api.dao;
 
 import currency_exchange_api.exception.MissingCurrencyException;
-import currency_exchange_api.exception.MissingCurrencyPairException;
 import currency_exchange_api.model.Currency;
 import currency_exchange_api.model.ExchangeRate;
 import currency_exchange_api.util.DatabaseUtil;
 
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,33 +15,79 @@ public class CurrencyDAOImpl implements CurrencyDAO {
     public List<Currency> getCurrencies() throws SQLException {
 
         String sql = "SELECT * FROM currencies";
-        return getCurrency(sql);
+        List<Currency> currencyList = new ArrayList<>();
+
+        try (Connection connection = DatabaseUtil.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql);
+             ResultSet resultSet = preparedStatement.executeQuery()) {
+
+            while (resultSet.next()) {
+                currencyList.add(getCurrency(resultSet));
+            }
+        }
+        return currencyList;
     }
 
     @Override
     public Currency getCurrencyByCode(String code) throws SQLException {
 
-        String sql = "SELECT * FROM currencies WHERE code = '" + code + "'";
+        String sql = "SELECT * FROM currencies WHERE code = ?";
 
-        return getCurrency(sql).get(0);
+        try (Connection connection = DatabaseUtil.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setString(1, code);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            Currency currency = getCurrency(resultSet);
+
+            if (currency.getId() == 0) {
+                throw new MissingCurrencyException("given currency is absent in database");
+            }
+            return currency;
+        }
     }
 
     @Override
     public List<ExchangeRate> getExchangeRates() throws SQLException {
 
         String sql = "SELECT * FROM exchange_rates";
-        return getExchangeRateList(sql);
+        List<ExchangeRate> exchangeRateList = new ArrayList<>();
+
+        try (Connection connection = DatabaseUtil.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql);
+             ResultSet resultSet = preparedStatement.executeQuery()) {
+
+            while (resultSet.next()) {
+                exchangeRateList.add(getExchangeRate(resultSet));
+            }
+
+            return exchangeRateList;
+        }
     }
 
     @Override
-    public ExchangeRate getExchangeRate(Currency baseCurrency, Currency targetCurrency) throws SQLException {
+    public ExchangeRate getExchangeRate(String baseCurrencyCode, String targetCurrencyCode) throws SQLException {
 
-        int baseId = baseCurrency.getId();
-        int targetId = targetCurrency.getId();
+        int baseId = getCurrencyByCode(baseCurrencyCode).getId();
+        int targetId = getCurrencyByCode(targetCurrencyCode).getId();
 
-        String sql = "SELECT * FROM exchange_rates WHERE base_currency = " + baseId + " AND target_currency = " + targetId;
+        String sql = "SELECT * FROM exchange_rates WHERE base_currency_id = ? AND target_currency_id = ?";
 
-        return getExchangeRateList(sql).get(0);
+        try (Connection connection = DatabaseUtil.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+
+            preparedStatement.setInt(1, baseId);
+            preparedStatement.setInt(2, targetId);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            ExchangeRate exchangeRate = getExchangeRate(resultSet);
+            if (exchangeRate.getId() == 0) {
+                throw new MissingCurrencyException("exchange rate for this pair of currencies is absent in database");
+            }
+            return exchangeRate;
+        }
     }
 
     @Override
@@ -61,9 +107,9 @@ public class CurrencyDAOImpl implements CurrencyDAO {
     }
 
     @Override
-    public void saveExchangeRate(String baseCurrencyCode, String targetCurrencyCode, double rate) throws SQLException, MissingCurrencyException{
+    public void saveExchangeRate(String baseCurrencyCode, String targetCurrencyCode, BigDecimal rate) throws SQLException, MissingCurrencyException {
 
-        String sql = "INSERT INTO exchange_rates (base_currency, target_currency, rate) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO exchange_rates (base_currency_id, target_currency_id, rate) VALUES (?, ?, ?)";
 
         try (Connection connection = DatabaseUtil.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
@@ -76,7 +122,7 @@ public class CurrencyDAOImpl implements CurrencyDAO {
 
             preparedStatement.setInt(1, baseCurrencyId);
             preparedStatement.setInt(2, targetCurrencyId);
-            preparedStatement.setDouble(3, rate);
+            preparedStatement.setBigDecimal(3, rate);
 
             preparedStatement.executeUpdate();
 
@@ -87,79 +133,50 @@ public class CurrencyDAOImpl implements CurrencyDAO {
     }
 
     @Override
-    public void updateExchangeRate(int id, double rate) throws SQLException {
+    public void updateExchangeRate(int id, BigDecimal rate) throws SQLException {
 
         String sql = "UPDATE exchange_rates SET rate = ? WHERE id = ?";
 
         try (Connection connection = DatabaseUtil.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
-            preparedStatement.setDouble(1, rate);
+            preparedStatement.setBigDecimal(1, rate);
             preparedStatement.setInt(2, id);
             preparedStatement.executeUpdate();
 
         }
     }
 
-    private List<Currency> getCurrencyById(int id) throws SQLException {
+    private Currency getCurrencyById(int id) throws SQLException {
 
-        String sql = "SELECT * FROM currencies WHERE id = " + id;
-        return getCurrency(sql);
-    }
-
-    private List<Currency> getCurrency(String sql) throws SQLException, MissingCurrencyPairException {
-        List<Currency> currencyList = new ArrayList<>();
+        String sql = "SELECT * FROM currencies WHERE id = ?";
 
         try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql);
-             ResultSet resultSet = preparedStatement.executeQuery()) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
 
-            if (resultSet.isBeforeFirst()) {
+            preparedStatement.setInt(1, id);
 
-                while (resultSet.next()) {
+            ResultSet resultSet = preparedStatement.executeQuery();
 
-                    int id = resultSet.getInt("id");
-                    String code = resultSet.getString("code");
-                    String fullName = resultSet.getString("full_name");
-                    String sign = resultSet.getString("sign");
-
-                    currencyList.add(new Currency(id, code, fullName, sign));
-                }
-
-            } else {
-                throw new MissingCurrencyException("Currency does not exist in the database.");
-            }
+            return getCurrency(resultSet);
         }
-        return currencyList;
     }
 
-    private List<ExchangeRate> getExchangeRateList(String sql) throws SQLException, MissingCurrencyPairException {
+    private Currency getCurrency(ResultSet resultSet) throws SQLException {
+        return new Currency(
+                resultSet.getInt("id"),
+                resultSet.getString("code"),
+                resultSet.getString("full_name"),
+                resultSet.getString("sign")
+        );
+    }
 
-        List<ExchangeRate> exchangeRateList = new ArrayList<>();
-
-        try (Connection connection = DatabaseUtil.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(sql);
-             ResultSet resultSet = preparedStatement.executeQuery()) {
-
-            if (resultSet.isBeforeFirst()) {
-
-                while (resultSet.next()) {
-
-                    int id = resultSet.getInt("id");
-                    int baseCurrencyId = resultSet.getInt("base_currency");
-                    int targetCurrencyId = resultSet.getInt("target_currency");
-                    double rate = resultSet.getDouble("rate");
-
-                    Currency baseCurrency = getCurrencyById(baseCurrencyId).get(0);
-                    Currency targetCurrency = getCurrencyById(targetCurrencyId).get(0);
-                    exchangeRateList.add(new ExchangeRate(id, baseCurrency, targetCurrency, rate));
-                }
-
-            } else {
-                throw new MissingCurrencyPairException("requested currency pair does not exist in the database.");
-            }
-        }
-
-        return exchangeRateList;
+    private ExchangeRate getExchangeRate(ResultSet resultSet) throws SQLException {
+        return new ExchangeRate(
+                resultSet.getInt("id"),
+                getCurrencyById(resultSet.getInt("base_currency_id")),
+                getCurrencyById(resultSet.getInt("target_currency_id")),
+                resultSet.getBigDecimal("rate")
+        );
     }
 }
