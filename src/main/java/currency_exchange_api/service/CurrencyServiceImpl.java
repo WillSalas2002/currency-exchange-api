@@ -4,6 +4,7 @@ import currency_exchange_api.dao.CurrencyDAO;
 import currency_exchange_api.model.Currency;
 import currency_exchange_api.model.ExchangeRate;
 
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -29,8 +30,8 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
-    public ExchangeRate getExchangeRate(Currency baseCurrency, Currency targetCurrency) throws SQLException {
-        return currencyDAO.getExchangeRate(baseCurrency, targetCurrency);
+    public ExchangeRate getExchangeRate(String baseCurrencyCode, String targetCurrencyCode) throws SQLException {
+        return currencyDAO.getExchangeRate(baseCurrencyCode, targetCurrencyCode);
     }
 
     @Override
@@ -39,12 +40,12 @@ public class CurrencyServiceImpl implements CurrencyService {
     }
 
     @Override
-    public void saveExchangeRate(String baseCurrencyCode, String targetCurrencyCode, double rate) throws SQLException {
+    public void saveExchangeRate(String baseCurrencyCode, String targetCurrencyCode, BigDecimal rate) throws SQLException {
         currencyDAO.saveExchangeRate(baseCurrencyCode, targetCurrencyCode, rate);
     }
 
     @Override
-    public void updateExchangeRate(int id, double rate) throws SQLException {
+    public void updateExchangeRate(int id, BigDecimal rate) throws SQLException {
         currencyDAO.updateExchangeRate(id, rate);
     }
 }
