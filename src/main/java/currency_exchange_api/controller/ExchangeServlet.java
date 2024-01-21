@@ -7,7 +7,6 @@ import currency_exchange_api.dto.ExchangeResponseDTO;
 import currency_exchange_api.exception.InvalidParameterException;
 import currency_exchange_api.exception.MissingCurrencyException;
 import currency_exchange_api.exception.MissingCurrencyPairException;
-import currency_exchange_api.model.Currency;
 import currency_exchange_api.model.ExchangeRate;
 import currency_exchange_api.service.CurrencyService;
 import currency_exchange_api.service.CurrencyServiceImpl;
@@ -68,7 +67,6 @@ public class ExchangeServlet extends HttpServlet {
             BigDecimal convertedAmount = rate.multiply(amountDouble);
             convertedAmount = convertedAmount.setScale(6, RoundingMode.HALF_EVEN);
 
-            res.setContentType("application/json");
             ExchangeResponseDTO exchangeResponseDTO = new ExchangeResponseDTO(exchangeRate, amountDouble, convertedAmount);
 
             res.setStatus(HttpServletResponse.SC_OK);
@@ -90,17 +88,14 @@ public class ExchangeServlet extends HttpServlet {
 
     private ExchangeRate getRealExchangeRate(String codeFrom, String codeTo) throws SQLException, MissingCurrencyPairException, MissingCurrencyException {
 
-        Currency baseCurrency = currencyService.getCurrencyByCode(codeFrom);
-        Currency targetCurrency = currencyService.getCurrencyByCode(codeTo);
-
         ExchangeRate exchangeRate;
         try {
 
-            exchangeRate = currencyService.getExchangeRate(baseCurrency, targetCurrency);
+            exchangeRate = currencyService.getExchangeRate(codeFrom, codeTo);
 
         } catch (MissingCurrencyPairException e) {
 
-            exchangeRate = currencyService.getExchangeRate(targetCurrency, baseCurrency);
+            exchangeRate = currencyService.getExchangeRate(codeTo, codeFrom);
             BigDecimal rate = BigDecimal.ONE.divide(exchangeRate.getRate(), 6, RoundingMode.HALF_EVEN);
             exchangeRate.setRate(rate);
         }

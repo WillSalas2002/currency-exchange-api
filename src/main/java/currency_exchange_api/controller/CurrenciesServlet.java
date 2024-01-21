@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import currency_exchange_api.dao.CurrencyDAO;
 import currency_exchange_api.dao.CurrencyDAOImpl;
 import currency_exchange_api.exception.InvalidParameterException;
-import currency_exchange_api.exception.MissingCurrencyException;
 import currency_exchange_api.model.Currency;
 import currency_exchange_api.service.CurrencyService;
 import currency_exchange_api.service.CurrencyServiceImpl;
@@ -32,7 +31,6 @@ public class CurrenciesServlet extends HttpServlet {
         try {
 
             List<Currency> currencyList = currencyService.getCurrencies();
-            res.setContentType("application/json");
             res.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(res.getWriter(), currencyList);
 
@@ -40,7 +38,6 @@ public class CurrenciesServlet extends HttpServlet {
             res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "database is not available."));
         }
-
     }
 
     @Override
@@ -52,8 +49,8 @@ public class CurrenciesServlet extends HttpServlet {
             String name = req.getParameter("name");
             String sign = req.getParameter("sign");
 
+            System.out.println(name + " " + code + " " + sign);
             if (!Validation.isCodeValid(code) || name.length() < 2 || sign.length() == 0) {
-                System.out.println(name + " " + code + " " + sign);
                 throw new InvalidParameterException("Invalid parameter");
             }
 
@@ -62,9 +59,9 @@ public class CurrenciesServlet extends HttpServlet {
             res.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "Currency saved successfully."));
 
-        } catch (InvalidParameterException error) {
+        } catch (InvalidParameterException | NullPointerException error) {
             res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", error.getMessage()));
+            objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "Invalid parameter"));
 
         } catch (SQLException e) {
             if (e.getErrorCode() == 19) {

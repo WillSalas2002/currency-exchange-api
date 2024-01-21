@@ -30,7 +30,6 @@ public class ExchangeRatesServlet extends HttpServlet {
         try {
 
             List<ExchangeRate> exchangeRatesList = currencyService.getExchangeRates();
-            res.setContentType("application/json");
             res.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(res.getWriter(), exchangeRatesList);
 
@@ -60,11 +59,11 @@ public class ExchangeRatesServlet extends HttpServlet {
 
         } catch (NumberFormatException | NullPointerException error) {
             res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "invalid rate"));
+            objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "invalid parameters"));
 
         } catch (MissingCurrencyException error) {
             res.setStatus(HttpServletResponse.SC_NOT_FOUND);
-            objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", error.getMessage()));
+            objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "specified currency pair is absent in database"));
 
         } catch (SQLException e) {
             if (e.getErrorCode() == 19) {

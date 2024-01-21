@@ -36,16 +36,15 @@ public class CurrencyServlet extends HttpServlet {
             }
 
             Currency currency = currencyService.getCurrencyByCode(code);
-            res.setContentType("application/json");
             res.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(res.getWriter(), currency);
 
-        } catch (InvalidParameterException error) {
+        } catch (InvalidParameterException | NullPointerException error) {
             res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", error.getMessage()));
+            objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "specified currency code is not valid or it is absent."));
 
         } catch (MissingCurrencyException error) {
-            res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            res.setStatus(HttpServletResponse.SC_NOT_FOUND);
             objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", error.getMessage()));
 
         } catch (SQLException e) {

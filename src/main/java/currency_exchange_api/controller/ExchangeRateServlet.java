@@ -54,17 +54,13 @@ public class ExchangeRateServlet extends HttpServlet {
                 throw new InvalidParameterException("specified currency codes are not valid");
             }
 
-            Currency baseCurrency = currencyService.getCurrencyByCode(codeBase);
-            Currency targetCurrency = currencyService.getCurrencyByCode(codeTarget);
-
-            ExchangeRate exchangeRate = currencyService.getExchangeRate(baseCurrency, targetCurrency);
-            res.setContentType("application/json");
+            ExchangeRate exchangeRate = currencyService.getExchangeRate(codeBase, codeTarget);
             res.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(res.getWriter(), exchangeRate);
 
-        } catch (InvalidParameterException error) {
+        } catch (InvalidParameterException | StringIndexOutOfBoundsException | NullPointerException error) {
             res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", error.getMessage()));
+            objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "specified currency codes are not valid or absent"));
 
         } catch (MissingCurrencyException | MissingCurrencyPairException error) {
             res.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -99,10 +95,7 @@ public class ExchangeRateServlet extends HttpServlet {
                 rateStr = split[1];
             }
 
-            Currency baseCurrency = currencyService.getCurrencyByCode(codeBase);
-            Currency targetCurrency = currencyService.getCurrencyByCode(codeTarget);
-
-            ExchangeRate exchangeRate = currencyService.getExchangeRate(baseCurrency, targetCurrency);
+            ExchangeRate exchangeRate = currencyService.getExchangeRate(codeBase, codeTarget);
 
             int id = exchangeRate.getId();
             BigDecimal rate = new BigDecimal(rateStr);
@@ -117,9 +110,9 @@ public class ExchangeRateServlet extends HttpServlet {
             res.setStatus(HttpServletResponse.SC_NOT_FOUND);
             objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", error.getMessage()));
 
-        } catch (InvalidParameterException | NumberFormatException | NullPointerException error) {
+        } catch (InvalidParameterException | NumberFormatException | NullPointerException | StringIndexOutOfBoundsException error) {
             res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", error.getMessage()));
+            objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "specified currency codes are not valid or absent"));
 
         } catch (SQLException error) {
             res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
