@@ -2,23 +2,24 @@ package currency_exchange_api.util;
 
 import org.sqlite.SQLiteDataSource;
 
-import java.io.File;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class DatabaseUtil {
 
     private static final Logger LOGGER = Logger.getLogger(DatabaseUtil.class.getName());
-    private static final String DATABASE_URL = "jdbc:sqlite:C:/Program Files/JetBrains/java-projects/pet-projects/currency-exchange-api/src/main/resources/database.sqlite";
     private static final SQLiteDataSource dataSource = new SQLiteDataSource();
 
     static {
-        dataSource.setUrl(DATABASE_URL);
+        Properties properties = loadProperties("database.properties");
+        String databaseUrl = properties.getProperty("database_url");
+
+        dataSource.setUrl(databaseUrl);
     }
 
     public static Connection getConnection() {
@@ -31,5 +32,20 @@ public class DatabaseUtil {
     }
 
     private DatabaseUtil() {
+    }
+
+    private static Properties loadProperties(String fileName) {
+        Properties properties = new Properties();
+
+        try (InputStream input = DatabaseUtil.class.getClassLoader().getResourceAsStream(fileName)) {
+            if (input != null) {
+                properties.load(input);
+            } else {
+                LOGGER.log(Level.SEVERE, "File not found " + fileName);
+            }
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Error ", e);
+        }
+        return properties;
     }
 }
