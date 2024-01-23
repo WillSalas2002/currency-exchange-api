@@ -1,6 +1,6 @@
-package currency_exchange_api.dto;
+package currency.exchange.api.dto;
 
-import currency_exchange_api.model.ExchangeRate;
+import currency.exchange.api.model.ExchangeRate;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;

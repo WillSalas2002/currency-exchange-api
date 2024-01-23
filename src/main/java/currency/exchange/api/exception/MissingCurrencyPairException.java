@@ -1,10 +1,9 @@
-package currency_exchange_api.exception;
+package currency.exchange.api.exception;
 
-public class MissingCurrencyException extends IndexOutOfBoundsException {
-
+public class MissingCurrencyPairException extends ArrayIndexOutOfBoundsException {
     private String message;
 
-    public MissingCurrencyException(String message) {
+    public MissingCurrencyPairException(String message) {
         this.message = message;
     }
 

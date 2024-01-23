@@ -1,16 +1,16 @@
-package currency_exchange_api.controller;
+package currency.exchange.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import currency_exchange_api.dao.CurrencyDAO;
-import currency_exchange_api.dao.CurrencyDAOImpl;
-import currency_exchange_api.dto.ExchangeResponseDTO;
-import currency_exchange_api.exception.InvalidParameterException;
-import currency_exchange_api.exception.MissingCurrencyException;
-import currency_exchange_api.exception.MissingCurrencyPairException;
-import currency_exchange_api.model.ExchangeRate;
-import currency_exchange_api.service.CurrencyService;
-import currency_exchange_api.service.CurrencyServiceImpl;
-import currency_exchange_api.util.Validation;
+import currency.exchange.api.dao.CurrencyDAO;
+import currency.exchange.api.dto.ExchangeResponseDTO;
+import currency.exchange.api.exception.InvalidParameterException;
+import currency.exchange.api.exception.MissingCurrencyException;
+import currency.exchange.api.exception.MissingCurrencyPairException;
+import currency.exchange.api.dao.CurrencyDAOImpl;
+import currency.exchange.api.model.ExchangeRate;
+import currency.exchange.api.service.CurrencyService;
+import currency.exchange.api.service.CurrencyServiceImpl;
+import currency.exchange.api.util.Validation;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -48,9 +48,15 @@ public class ExchangeServlet extends HttpServlet {
                 String[] values = parameterMap.get(paramName);
 
                 switch (paramName) {
-                    case "from" -> codeFrom = values[0].toUpperCase();
-                    case "to" -> codeTo = values[0].toUpperCase();
-                    case "amount" -> amount = values[0];
+                    case "from" -> {
+                        codeFrom = values[0].toUpperCase();
+                    }
+                    case "to" -> {
+                        codeTo = values[0].toUpperCase();
+                    }
+                    case "amount" -> {
+                        amount = values[0];
+                    }
                 }
             }
 

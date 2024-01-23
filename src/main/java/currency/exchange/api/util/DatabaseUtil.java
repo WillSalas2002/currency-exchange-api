@@ -1,4 +1,4 @@
-package currency_exchange_api.util;
+package currency.exchange.api.util;
 
 import org.sqlite.SQLiteDataSource;
 
@@ -13,18 +13,18 @@ import java.util.logging.Logger;
 public class DatabaseUtil {
 
     private static final Logger LOGGER = Logger.getLogger(DatabaseUtil.class.getName());
-    private static final SQLiteDataSource dataSource = new SQLiteDataSource();
+    private static final SQLiteDataSource DATA_SOURCE = new SQLiteDataSource();
 
     static {
         Properties properties = loadProperties("database.properties");
         String databaseUrl = properties.getProperty("database_url");
 
-        dataSource.setUrl(databaseUrl);
+        DATA_SOURCE.setUrl(databaseUrl);
     }
 
     public static Connection getConnection() {
         try {
-            return dataSource.getConnection();
+            return DATA_SOURCE.getConnection();
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Failed to get database connection", e);
             throw new RuntimeException("Failed to get database connection", e);

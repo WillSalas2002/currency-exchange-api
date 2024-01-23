@@ -1,8 +1,8 @@
-package currency_exchange_api.service;
+package currency.exchange.api.service;
 
-import currency_exchange_api.dao.CurrencyDAO;
-import currency_exchange_api.model.Currency;
-import currency_exchange_api.model.ExchangeRate;
+import currency.exchange.api.dao.CurrencyDAO;
+import currency.exchange.api.model.Currency;
+import currency.exchange.api.model.ExchangeRate;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -15,10 +15,12 @@ public class CurrencyServiceImpl implements CurrencyService {
     public CurrencyServiceImpl(CurrencyDAO currencyDAO) {
         this.currencyDAO = currencyDAO;
     }
+
     @Override
     public List<Currency> getCurrencies() throws SQLException {
         return currencyDAO.getCurrencies();
     }
+
     @Override
     public Currency getCurrencyByCode(String code) throws SQLException {
         return currencyDAO.getCurrencyByCode(code);

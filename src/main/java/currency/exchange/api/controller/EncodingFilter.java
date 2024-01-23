@@ -1,4 +1,4 @@
-package currency_exchange_api.controller;
+package currency.exchange.api.controller;
 
 import jakarta.servlet.*;
 import jakarta.servlet.annotation.WebFilter;

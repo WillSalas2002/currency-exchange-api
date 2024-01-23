@@ -1,9 +1,9 @@
-package currency_exchange_api.dao;
+package currency.exchange.api.dao;
 
-import currency_exchange_api.exception.MissingCurrencyException;
-import currency_exchange_api.model.Currency;
-import currency_exchange_api.model.ExchangeRate;
-import currency_exchange_api.util.DatabaseUtil;
+import currency.exchange.api.exception.MissingCurrencyException;
+import currency.exchange.api.model.Currency;
+import currency.exchange.api.model.ExchangeRate;
+import currency.exchange.api.util.DatabaseUtil;
 
 import java.math.BigDecimal;
 import java.sql.*;

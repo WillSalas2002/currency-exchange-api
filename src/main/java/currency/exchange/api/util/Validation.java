@@ -1,4 +1,4 @@
-package currency_exchange_api.util;
+package currency.exchange.api.util;
 
 public class Validation {
 

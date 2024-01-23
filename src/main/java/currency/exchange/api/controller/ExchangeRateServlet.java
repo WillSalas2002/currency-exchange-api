@@ -1,16 +1,15 @@
-package currency_exchange_api.controller;
+package currency.exchange.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import currency_exchange_api.dao.CurrencyDAO;
-import currency_exchange_api.dao.CurrencyDAOImpl;
-import currency_exchange_api.exception.InvalidParameterException;
-import currency_exchange_api.exception.MissingCurrencyException;
-import currency_exchange_api.exception.MissingCurrencyPairException;
-import currency_exchange_api.model.Currency;
-import currency_exchange_api.model.ExchangeRate;
-import currency_exchange_api.service.CurrencyService;
-import currency_exchange_api.service.CurrencyServiceImpl;
-import currency_exchange_api.util.Validation;
+import currency.exchange.api.dao.CurrencyDAO;
+import currency.exchange.api.dao.CurrencyDAOImpl;
+import currency.exchange.api.exception.InvalidParameterException;
+import currency.exchange.api.exception.MissingCurrencyException;
+import currency.exchange.api.exception.MissingCurrencyPairException;
+import currency.exchange.api.model.ExchangeRate;
+import currency.exchange.api.service.CurrencyService;
+import currency.exchange.api.service.CurrencyServiceImpl;
+import currency.exchange.api.util.Validation;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -26,7 +25,6 @@ import java.util.Collections;
 
 @WebServlet("/exchangeRate/*")
 public class ExchangeRateServlet extends HttpServlet {
-
     private final CurrencyDAO currencyDAO = new CurrencyDAOImpl();
     private final CurrencyService currencyService = new CurrencyServiceImpl(currencyDAO);
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -45,19 +43,15 @@ public class ExchangeRateServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
 
         try {
-
             String pathInfo = req.getPathInfo().replace("/", "");
             String codeBase = pathInfo.substring(0, 3).toUpperCase();
             String codeTarget = pathInfo.substring(3).toUpperCase();
-
             if (!(Validation.isCodeValid(codeBase) && Validation.isCodeValid(codeTarget))) {
                 throw new InvalidParameterException("specified currency codes are not valid");
             }
-
             ExchangeRate exchangeRate = currencyService.getExchangeRate(codeBase, codeTarget);
             res.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(res.getWriter(), exchangeRate);
-
         } catch (InvalidParameterException | StringIndexOutOfBoundsException | NullPointerException error) {
             res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "specified currency codes are not valid or absent"));
@@ -75,37 +69,25 @@ public class ExchangeRateServlet extends HttpServlet {
     private void doPatch(HttpServletRequest req, HttpServletResponse res) throws IOException {
 
         try {
-
             String pathInfo = req.getPathInfo().replace("/", "");
-
             String codeBase = pathInfo.substring(0, 3).toUpperCase();
             String codeTarget = pathInfo.substring(3).toUpperCase();
-
             if (!(Validation.isCodeValid(codeBase) && Validation.isCodeValid(codeTarget))) {
                 throw new InvalidParameterException("specified currency codes are not valid");
             }
-
             BufferedReader reader = new BufferedReader(new InputStreamReader(req.getInputStream()));
-
             String line;
             String rateStr = null;
-
             while ((line = reader.readLine()) != null) {
                 String[] split = line.split("=");
                 rateStr = split[1];
             }
-
             ExchangeRate exchangeRate = currencyService.getExchangeRate(codeBase, codeTarget);
-
             int id = exchangeRate.getId();
             BigDecimal rate = new BigDecimal(rateStr);
-
             currencyService.updateExchangeRate(id, rate);
-
             res.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "the resource updated successfully."));
-
-
         } catch (MissingCurrencyException | MissingCurrencyPairException error) {
             res.setStatus(HttpServletResponse.SC_NOT_FOUND);
             objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", error.getMessage()));

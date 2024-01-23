@@ -1,4 +1,4 @@
-package currency_exchange_api.exception;
+package currency.exchange.api.exception;
 
 public class InvalidParameterException extends Exception {
 

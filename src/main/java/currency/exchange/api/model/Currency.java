@@ -1,4 +1,4 @@
-package currency_exchange_api.model;
+package currency.exchange.api.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
