@@ -2,11 +2,10 @@ package currency.exchange.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import currency.exchange.api.dao.CurrencyDAO;
-import currency.exchange.api.dao.CurrencyDAOImpl;
+import currency.exchange.api.dao.CurrencyRepository;
 import currency.exchange.api.exception.InvalidParameterException;
 import currency.exchange.api.model.Currency;
 import currency.exchange.api.service.CurrencyService;
-import currency.exchange.api.service.CurrencyServiceImpl;
 import currency.exchange.api.util.Validation;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -21,8 +20,8 @@ import java.util.List;
 @WebServlet("/currencies")
 public class CurrenciesServlet extends HttpServlet {
 
-    private final CurrencyDAO currencyDAO = new CurrencyDAOImpl();
-    private final CurrencyService currencyService = new CurrencyServiceImpl(currencyDAO);
+    private final CurrencyRepository repository = new CurrencyDAO();
+    private final CurrencyService currencyService = new CurrencyService(repository);
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
@@ -30,7 +29,7 @@ public class CurrenciesServlet extends HttpServlet {
 
         try {
 
-            List<Currency> currencyList = currencyService.getCurrencies();
+            List<Currency> currencyList = currencyService.findAll();
             res.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(res.getWriter(), currencyList);
 
@@ -54,7 +53,9 @@ public class CurrenciesServlet extends HttpServlet {
                 throw new InvalidParameterException("Invalid parameter");
             }
 
-            currencyService.saveCurrency(name, code, sign);
+            Currency currency = new Currency(name, code, sign);
+
+            currencyService.save(currency);
 
             res.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "Currency saved successfully."));

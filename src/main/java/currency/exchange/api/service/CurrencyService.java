@@ -1,25 +1,28 @@
 package currency.exchange.api.service;
 
+import currency.exchange.api.dao.CurrencyRepository;
 import currency.exchange.api.model.Currency;
-import currency.exchange.api.model.ExchangeRate;
 
-import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
 
-public interface CurrencyService {
+public class CurrencyService {
 
-    List<Currency> getCurrencies() throws SQLException;
+    private final CurrencyRepository currencyRepository;
 
-    Currency getCurrencyByCode(String code) throws SQLException;
+    public CurrencyService(CurrencyRepository currencyRepository) {
+        this.currencyRepository = currencyRepository;
+    }
 
-    List<ExchangeRate> getExchangeRates() throws SQLException;
+    public List<Currency> findAll() throws SQLException {
+        return currencyRepository.findAll();
+    }
 
-    ExchangeRate getExchangeRate(String baseCurrencyCode, String targetCurrencyCode) throws SQLException;
+    public Currency findByCode(String code) throws SQLException {
+        return currencyRepository.findByCode(code);
+    }
 
-    void saveCurrency(String name, String code, String sign) throws SQLException;
-
-    void saveExchangeRate(String baseCurrencyCode, String targetCurrencyCode, BigDecimal rate) throws SQLException;
-
-    void updateExchangeRate(int id, BigDecimal rate) throws SQLException;
+    public void save(Currency currency) throws SQLException {
+        currencyRepository.save(currency);
+    }
 }

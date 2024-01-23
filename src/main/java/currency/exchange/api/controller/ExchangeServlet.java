@@ -1,15 +1,14 @@
 package currency.exchange.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import currency.exchange.api.dao.CurrencyDAO;
+import currency.exchange.api.dao.ExchangeRateDAO;
+import currency.exchange.api.dao.ExchangeRateRepository;
 import currency.exchange.api.dto.ExchangeResponseDTO;
 import currency.exchange.api.exception.InvalidParameterException;
 import currency.exchange.api.exception.MissingCurrencyException;
 import currency.exchange.api.exception.MissingCurrencyPairException;
-import currency.exchange.api.dao.CurrencyDAOImpl;
 import currency.exchange.api.model.ExchangeRate;
-import currency.exchange.api.service.CurrencyService;
-import currency.exchange.api.service.CurrencyServiceImpl;
+import currency.exchange.api.service.ExchangeRateService;
 import currency.exchange.api.util.Validation;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -27,15 +26,14 @@ import java.util.Set;
 @WebServlet("/exchange/*")
 public class ExchangeServlet extends HttpServlet {
 
-    private final CurrencyDAO currencyDAO = new CurrencyDAOImpl();
-    private final CurrencyService currencyService = new CurrencyServiceImpl(currencyDAO);
+    private final ExchangeRateRepository repository = new ExchangeRateDAO();
+    private final ExchangeRateService exchangeRateService = new ExchangeRateService(repository);
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
 
         try {
-
             String codeFrom = null;
             String codeTo = null;
             String amount = null;
@@ -81,11 +79,9 @@ public class ExchangeServlet extends HttpServlet {
         } catch (InvalidParameterException | NumberFormatException | NullPointerException error) {
             res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", error.getMessage()));
-
         } catch (MissingCurrencyException | MissingCurrencyPairException error) {
             res.setStatus(HttpServletResponse.SC_NOT_FOUND);
             objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", error.getMessage()));
-
         } catch (SQLException e) {
             res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "database is not available."));
@@ -96,16 +92,12 @@ public class ExchangeServlet extends HttpServlet {
 
         ExchangeRate exchangeRate;
         try {
-
-            exchangeRate = currencyService.getExchangeRate(codeFrom, codeTo);
-
+            exchangeRate = exchangeRateService.findByCurrencyCodes(codeFrom, codeTo);
         } catch (MissingCurrencyPairException e) {
-
-            exchangeRate = currencyService.getExchangeRate(codeTo, codeFrom);
-            BigDecimal rate = BigDecimal.ONE.divide(exchangeRate.getRate(), 6, RoundingMode.HALF_EVEN);
+            exchangeRate = exchangeRateService.findByCurrencyCodes(codeTo, codeFrom);
+            BigDecimal rate = BigDecimal.ONE.divide(exchangeRate.getRate(), RoundingMode.HALF_EVEN);
             exchangeRate.setRate(rate);
         }
-
         return exchangeRate;
     }
 }

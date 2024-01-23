@@ -2,11 +2,14 @@ package currency.exchange.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import currency.exchange.api.dao.CurrencyDAO;
-import currency.exchange.api.dao.CurrencyDAOImpl;
+import currency.exchange.api.dao.CurrencyRepository;
+import currency.exchange.api.dao.ExchangeRateDAO;
+import currency.exchange.api.dao.ExchangeRateRepository;
 import currency.exchange.api.exception.MissingCurrencyException;
+import currency.exchange.api.model.Currency;
 import currency.exchange.api.model.ExchangeRate;
 import currency.exchange.api.service.CurrencyService;
-import currency.exchange.api.service.CurrencyServiceImpl;
+import currency.exchange.api.service.ExchangeRateService;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,8 +22,10 @@ import java.util.List;
 
 @WebServlet("/exchangeRates")
 public class ExchangeRatesServlet extends HttpServlet {
-    private final CurrencyDAO currencyDAO = new CurrencyDAOImpl();
-    private final CurrencyService currencyService = new CurrencyServiceImpl(currencyDAO);
+    private final ExchangeRateRepository exchangeRateRepository = new ExchangeRateDAO();
+    private final ExchangeRateService exchangeRateService = new ExchangeRateService(exchangeRateRepository);
+    private final CurrencyRepository currencyRepository = new CurrencyDAO();
+    private final CurrencyService currencyService = new CurrencyService(currencyRepository);
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
@@ -28,7 +33,7 @@ public class ExchangeRatesServlet extends HttpServlet {
 
         try {
 
-            List<ExchangeRate> exchangeRatesList = currencyService.getExchangeRates();
+            List<ExchangeRate> exchangeRatesList = exchangeRateService.findAll();
             res.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(res.getWriter(), exchangeRatesList);
 
@@ -49,7 +54,12 @@ public class ExchangeRatesServlet extends HttpServlet {
 
             BigDecimal rate = new BigDecimal(rateStr);
 
-            currencyService.saveExchangeRate(baseCurrencyCode, targetCurrencyCode, rate);
+            Currency baseCurrency = currencyService.findByCode(baseCurrencyCode);
+            Currency targetCurrency = currencyService.findByCode(targetCurrencyCode);
+
+            ExchangeRate exchangeRate = new ExchangeRate(baseCurrency, targetCurrency, rate);
+
+            exchangeRateService.save(exchangeRate);
 
             res.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "exchange rate saved successfully."));

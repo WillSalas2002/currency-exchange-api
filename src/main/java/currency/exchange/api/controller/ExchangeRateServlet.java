@@ -1,14 +1,13 @@
 package currency.exchange.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import currency.exchange.api.dao.CurrencyDAO;
-import currency.exchange.api.dao.CurrencyDAOImpl;
+import currency.exchange.api.dao.ExchangeRateDAO;
+import currency.exchange.api.dao.ExchangeRateRepository;
 import currency.exchange.api.exception.InvalidParameterException;
 import currency.exchange.api.exception.MissingCurrencyException;
 import currency.exchange.api.exception.MissingCurrencyPairException;
 import currency.exchange.api.model.ExchangeRate;
-import currency.exchange.api.service.CurrencyService;
-import currency.exchange.api.service.CurrencyServiceImpl;
+import currency.exchange.api.service.ExchangeRateService;
 import currency.exchange.api.util.Validation;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -25,8 +24,8 @@ import java.util.Collections;
 
 @WebServlet("/exchangeRate/*")
 public class ExchangeRateServlet extends HttpServlet {
-    private final CurrencyDAO currencyDAO = new CurrencyDAOImpl();
-    private final CurrencyService currencyService = new CurrencyServiceImpl(currencyDAO);
+    private final ExchangeRateRepository repository = new ExchangeRateDAO();
+    private final ExchangeRateService currencyService = new ExchangeRateService(repository);
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
@@ -49,7 +48,7 @@ public class ExchangeRateServlet extends HttpServlet {
             if (!(Validation.isCodeValid(codeBase) && Validation.isCodeValid(codeTarget))) {
                 throw new InvalidParameterException("specified currency codes are not valid");
             }
-            ExchangeRate exchangeRate = currencyService.getExchangeRate(codeBase, codeTarget);
+            ExchangeRate exchangeRate = currencyService.findByCurrencyCodes(codeBase, codeTarget);
             res.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(res.getWriter(), exchangeRate);
         } catch (InvalidParameterException | StringIndexOutOfBoundsException | NullPointerException error) {
@@ -82,10 +81,10 @@ public class ExchangeRateServlet extends HttpServlet {
                 String[] split = line.split("=");
                 rateStr = split[1];
             }
-            ExchangeRate exchangeRate = currencyService.getExchangeRate(codeBase, codeTarget);
+            ExchangeRate exchangeRate = currencyService.findByCurrencyCodes(codeBase, codeTarget);
             int id = exchangeRate.getId();
             BigDecimal rate = new BigDecimal(rateStr);
-            currencyService.updateExchangeRate(id, rate);
+            currencyService.update(id, rate);
             res.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "the resource updated successfully."));
         } catch (MissingCurrencyException | MissingCurrencyPairException error) {
