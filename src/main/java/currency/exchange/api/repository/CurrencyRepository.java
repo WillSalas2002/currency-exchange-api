@@ -1,15 +1,17 @@
-package currency.exchange.api.dao;
+package currency.exchange.api.repository;
 
 import currency.exchange.api.model.Currency;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
-public interface CurrencyRepository extends CRUDRepository<Currency> {
+public interface CurrencyRepository {
+
+    List<Currency> findAll() throws SQLException;
+
+    void save(Currency entity) throws SQLException;
 
     Currency findByCode(String code) throws SQLException;
-
-    Currency toCurrency(ResultSet resultSet) throws SQLException;
 
     Currency findById(int id) throws SQLException;
 }
