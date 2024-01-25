@@ -1,4 +1,4 @@
-package currency.exchange.api.dao;
+package currency.exchange.api.repository;
 
 import currency.exchange.api.exception.MissingCurrencyException;
 import currency.exchange.api.model.Currency;

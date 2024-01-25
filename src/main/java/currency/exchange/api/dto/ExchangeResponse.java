@@ -11,7 +11,6 @@ import java.math.BigDecimal;
 @Setter
 @Getter
 public class ExchangeResponseDTO {
-
     private ExchangeRate exchangeRate;
     private BigDecimal amount;
     private BigDecimal convertedAmount;
