@@ -7,6 +7,7 @@ import currency.exchange.api.util.DatabaseUtil;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class JdbcCurrencyRepository implements CurrencyRepository {
     private final static String FIND_ALL = "SELECT * FROM currencies";
@@ -28,16 +29,17 @@ public class JdbcCurrencyRepository implements CurrencyRepository {
     }
 
     @Override
-    public Currency findByCode(String code) throws SQLException {
+    public Optional<Currency> findByCode(String code) throws SQLException {
         try (Connection connection = DatabaseUtil.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_CODE)) {
             preparedStatement.setString(1, code);
             ResultSet resultSet = preparedStatement.executeQuery();
-            Currency currency = toCurrency(resultSet);
-            if (currency.getId() == 0) {
-                throw new MissingCurrencyException("given currency is absent in database");
+            if (resultSet.next()) {
+                Currency currency = toCurrency(resultSet);
+                return Optional.of(currency);
+            } else {
+                return Optional.empty();
             }
-            return currency;
         }
     }
 
@@ -52,6 +54,7 @@ public class JdbcCurrencyRepository implements CurrencyRepository {
         }
     }
 
+    @Override
     public Currency findById(int id) throws SQLException {
         try (Connection connection = DatabaseUtil.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_ID)) {

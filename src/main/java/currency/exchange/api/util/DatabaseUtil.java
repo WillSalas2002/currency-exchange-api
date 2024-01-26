@@ -11,14 +11,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class DatabaseUtil {
-
     private static final Logger LOGGER = Logger.getLogger(DatabaseUtil.class.getName());
     private static final SQLiteDataSource DATA_SOURCE = new SQLiteDataSource();
 
     static {
         Properties properties = loadProperties("database.properties");
         String databaseUrl = properties.getProperty("database_url");
-
         DATA_SOURCE.setUrl(databaseUrl);
     }
 
@@ -36,7 +34,6 @@ public class DatabaseUtil {
 
     private static Properties loadProperties(String fileName) {
         Properties properties = new Properties();
-
         try (InputStream input = DatabaseUtil.class.getClassLoader().getResourceAsStream(fileName)) {
             if (input != null) {
                 properties.load(input);

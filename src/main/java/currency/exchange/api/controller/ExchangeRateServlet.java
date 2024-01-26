@@ -1,8 +1,8 @@
 package currency.exchange.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import currency.exchange.api.dao.ExchangeRateDAO;
-import currency.exchange.api.dao.ExchangeRateRepository;
+import currency.exchange.api.repository.JdbcExchangeRateRepository;
+import currency.exchange.api.repository.ExchangeRateRepository;
 import currency.exchange.api.exception.InvalidParameterException;
 import currency.exchange.api.exception.MissingCurrencyException;
 import currency.exchange.api.exception.MissingCurrencyPairException;
@@ -21,16 +21,15 @@ import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.Collections;
+import java.util.Optional;
 
 @WebServlet("/exchangeRate/*")
 public class ExchangeRateServlet extends HttpServlet {
-    private final ExchangeRateRepository repository = new ExchangeRateDAO();
-    private final ExchangeRateService currencyService = new ExchangeRateService(repository);
+    private final ExchangeRateService currencyService = new ExchangeRateService();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
         if (req.getMethod().equalsIgnoreCase("PATCH")) {
             doPatch(req, resp);
         } else {
@@ -40,7 +39,6 @@ public class ExchangeRateServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws IOException {
-
         try {
             String pathInfo = req.getPathInfo().replace("/", "");
             String codeBase = pathInfo.substring(0, 3).toUpperCase();
@@ -66,7 +64,6 @@ public class ExchangeRateServlet extends HttpServlet {
     }
 
     private void doPatch(HttpServletRequest req, HttpServletResponse res) throws IOException {
-
         try {
             String pathInfo = req.getPathInfo().replace("/", "");
             String codeBase = pathInfo.substring(0, 3).toUpperCase();
@@ -90,11 +87,10 @@ public class ExchangeRateServlet extends HttpServlet {
         } catch (MissingCurrencyException | MissingCurrencyPairException error) {
             res.setStatus(HttpServletResponse.SC_NOT_FOUND);
             objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", error.getMessage()));
-
-        } catch (InvalidParameterException | NumberFormatException | NullPointerException | StringIndexOutOfBoundsException error) {
+        } catch (InvalidParameterException | NumberFormatException | NullPointerException |
+                 StringIndexOutOfBoundsException error) {
             res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "specified currency codes are not valid or absent"));
-
         } catch (SQLException error) {
             res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
             objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "failed to update the resource, due to a database error."));

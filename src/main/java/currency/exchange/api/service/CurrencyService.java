@@ -1,24 +1,21 @@
 package currency.exchange.api.service;
 
-import currency.exchange.api.dao.CurrencyRepository;
+import currency.exchange.api.repository.CurrencyRepository;
 import currency.exchange.api.model.Currency;
+import currency.exchange.api.repository.JdbcCurrencyRepository;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 public class CurrencyService {
-
-    private final CurrencyRepository currencyRepository;
-
-    public CurrencyService(CurrencyRepository currencyRepository) {
-        this.currencyRepository = currencyRepository;
-    }
+    private final CurrencyRepository currencyRepository = new JdbcCurrencyRepository();
 
     public List<Currency> findAll() throws SQLException {
         return currencyRepository.findAll();
     }
 
-    public Currency findByCode(String code) throws SQLException {
+    public Optional<Currency> findByCode(String code) throws SQLException {
         return currencyRepository.findByCode(code);
     }
 

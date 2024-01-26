@@ -4,6 +4,7 @@ import currency.exchange.api.model.Currency;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 
 public interface CurrencyRepository {
 
@@ -11,7 +12,7 @@ public interface CurrencyRepository {
 
     void save(Currency entity) throws SQLException;
 
-    Currency findByCode(String code) throws SQLException;
+    Optional<Currency> findByCode(String code) throws SQLException;
 
     Currency findById(int id) throws SQLException;
 }

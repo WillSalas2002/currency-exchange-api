@@ -1,7 +1,7 @@
 package currency.exchange.api.repository;
 
-import currency.exchange.api.dto.ExchangeRateDTO;
 import currency.exchange.api.exception.MissingCurrencyException;
+import currency.exchange.api.model.Currency;
 import currency.exchange.api.model.ExchangeRate;
 import currency.exchange.api.util.DatabaseUtil;
 
@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class JdbcExchangeRateRepository implements ExchangeRateRepository {
     private final static String FIND_ALL = "SELECT * FROM exchange_rates";
@@ -20,13 +21,13 @@ public class JdbcExchangeRateRepository implements ExchangeRateRepository {
     private final static String SQL_UPDATE_EXCHANGE_RATE = "UPDATE exchange_rates SET rate = ? WHERE id = ?";
 
     @Override
-    public List<ExchangeRateDTO> findAll() throws SQLException {
-        List<ExchangeRateDTO> exchangeRateList = new ArrayList<>();
+    public List<ExchangeRate> findAll() throws SQLException {
+        List<ExchangeRate> exchangeRateList = new ArrayList<>();
         try (Connection connection = DatabaseUtil.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL);
              ResultSet resultSet = preparedStatement.executeQuery()) {
             while (resultSet.next()) {
-                ExchangeRateDTO exchangeRate = toExchangeRate(resultSet);
+                ExchangeRate exchangeRate = toExchangeRate(resultSet);
                 exchangeRateList.add(exchangeRate);
             }
             return exchangeRateList;
@@ -34,17 +35,18 @@ public class JdbcExchangeRateRepository implements ExchangeRateRepository {
     }
 
     @Override
-    public ExchangeRateDTO findByCurrencyCodes(int baseId, int targetId) throws SQLException {
+    public Optional<ExchangeRate> findByCurrencyCodes(int baseId, int targetId) throws SQLException {
         try (Connection connection = DatabaseUtil.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_CURRENCY_CODES)) {
             preparedStatement.setInt(1, baseId);
             preparedStatement.setInt(2, targetId);
             ResultSet resultSet = preparedStatement.executeQuery();
-            ExchangeRateDTO exchangeRate = toExchangeRate(resultSet);
-            if (exchangeRate.getId() == 0) {
-                throw new MissingCurrencyException("exchange rate for this pair of currencies is absent in database");
+            if (resultSet.next()) {
+                ExchangeRate exchangeRate = toExchangeRate(resultSet);
+                return Optional.of(exchangeRate);
+            } else {
+                return Optional.empty();
             }
-            return exchangeRate;
         }
     }
 
@@ -71,11 +73,11 @@ public class JdbcExchangeRateRepository implements ExchangeRateRepository {
         }
     }
 
-    private ExchangeRateDTO toExchangeRate(ResultSet resultSet) throws SQLException {
-        return new ExchangeRateDTO(
+    private ExchangeRate toExchangeRate(ResultSet resultSet) throws SQLException {
+        return new ExchangeRate(
                 resultSet.getInt("id"),
-                resultSet.getInt("base_currency_id"),
-                resultSet.getInt("target_currency_id"),
+                new Currency(resultSet.getInt("base_currency_id")),
+                new Currency(resultSet.getInt("target_currency_id")),
                 resultSet.getBigDecimal("rate")
         );
     }
