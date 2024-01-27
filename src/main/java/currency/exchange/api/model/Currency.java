@@ -1,13 +1,14 @@
 package currency.exchange.api.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Setter
 @Getter
 @AllArgsConstructor
+@EqualsAndHashCode
+@ToString
 public class Currency {
+    @EqualsAndHashCode.Exclude
     private int id;
     private String code;
     private String fullName;

@@ -2,10 +2,7 @@ package currency.exchange.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import currency.exchange.api.dto.ExchangeResponse;
-import currency.exchange.api.exception.InvalidParameterException;
-import currency.exchange.api.exception.MissingCurrencyException;
-import currency.exchange.api.exception.MissingCurrencyPairException;
-import currency.exchange.api.model.ExchangeRate;
+import currency.exchange.api.exception.CurrencyException;
 import currency.exchange.api.service.ExchangeRateService;
 import currency.exchange.api.util.Validation;
 import jakarta.servlet.annotation.WebServlet;
@@ -15,8 +12,6 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -48,22 +43,23 @@ public class ExchangeServlet extends HttpServlet {
                     }
                 }
             }
+            if (codeFrom == null || codeTo == null || amountStr == null ||
+                    codeTo.isBlank() || codeFrom.isBlank() || amountStr.isBlank()) {
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "invalid parameter(s)"));
+                return;
+            }
             if (!(Validation.isCodeValid(codeTo) && Validation.isCodeValid(codeFrom))) {
-                throw new InvalidParameterException("specified currency code is not valid or it is absent.");
+                res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "currency code is not valid"));
             }
             BigDecimal amount = BigDecimal.valueOf(Double.parseDouble(amountStr));
             ExchangeResponse exchangeResponse = exchangeRateService.calculateExchangeRate(codeFrom, codeTo, amount);
             res.setStatus(HttpServletResponse.SC_OK);
             objectMapper.writeValue(res.getWriter(), exchangeResponse);
-        } catch (InvalidParameterException | NumberFormatException | NullPointerException error) {
-            res.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", error.getMessage()));
-        } catch (MissingCurrencyException | MissingCurrencyPairException error) {
+        } catch (CurrencyException error) {
             res.setStatus(HttpServletResponse.SC_NOT_FOUND);
             objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", error.getMessage()));
-        } catch (SQLException e) {
-            res.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            objectMapper.writeValue(res.getWriter(), Collections.singletonMap("message", "database is not available."));
         }
     }
 }
